@@ -1,0 +1,196 @@
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+}
+
+.horizontal-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+
+/*
+ * Sidebar
+ */
+
+.sidebar {
+  border-right: 1px solid #eee;
+  width: 25%;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+}
+::-webkit-scrollbar {
+  width: 0px;
+}
+
+.vertical-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.justify-between {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 0px 20px 3px 20px; 
+}
+
+.nav-sidebar {
+  width: 100%;
+}
+
+.nav-sidebar > li {
+  width: 100%;
+}
+
+.nav-sidebar > li > div {
+  width: 100%;
+}
+
+.nav-sidebar > li > div:hover {
+  cursor: pointer;
+}
+
+.nav-sidebar > .active > div,
+.nav-sidebar > .active > div:hover,
+.nav-sidebar > .active > div:focus {
+  color: #fff;
+  background-color: #428bca;
+}
+
+#context-menu {
+  margin: 0px 20px;
+}
+
+.texture-tiles {
+  width: 100%;
+}
+
+.texture-select-thumbnail {
+  display: inline-block;
+  width: 50%;
+  min-width: 100px;
+  margin: auto;
+}
+
+.thumbnail {
+  width: 100%;
+  border-radius: 10px;
+  padding: 2px;
+}
+
+/*
+ * Main content
+ */
+
+#loading-modal {
+  position: absolute;
+  z-index: 10;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  background-color: rgba(50, 50, 50, 0.9);
+}
+
+#loading-modal  h1 {
+  text-align: center; 
+  margin-top: 30%;
+  color: #fff;
+}
+
+.right-container {
+  flex: 1 1 auto;
+}
+
+#viewer {
+  width: 100%;
+}
+
+#camera-controls {
+  position: absolute;
+  bottom: 20px;
+  right: 0;
+  padding: 0 20px;  
+  text-align: right;
+  
+}
+
+#main-controls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 0;  
+}
+
+.basic-button {
+  padding: 3px 8px 6px 8px;
+  text-align: center;
+  margin: 1px;
+}
+
+.vertical-controls-container {
+  display: inline-flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  flex-basis: fit-content;
+  width: fit-content;
+  vertical-align: middle;
+}
+
+#floorplanner-controls {
+  position: absolute;
+  right: 0;
+  top: 0;
+  margin: 20px 0;
+  padding: 0 20px; 
+  width: fit-content;
+}
+
+#floorplanner {
+  /* width: 100%;
+  height: 100%; */
+}
+
+#floorplanner-canvas {
+  /* width: 100%;
+  height: 100%; */
+}
+
+#draw-walls-hint {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  background-color: rgba(0, 0, 0, 0.50);
+  color: #ffffff;
+  padding: 5px 10px;
+  z-index: 10;
+  display: none;
+}
+
+.icon-text-button {
+  display: inline-flex;
+  padding: 1px 8px 3px 8px;
+  align-content: center;
+  margin: 1px;
+}
+
+.icon-centre {
+  margin: 1px;
+}
+
+.text-centre {
+  margin: 1px;
+  padding-top: 2px;
+  padding-left: 2px;
+}
+
+#add-items {
+  overflow-y: auto;
+}
