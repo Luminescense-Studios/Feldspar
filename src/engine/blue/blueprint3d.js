@@ -2059,7 +2059,6 @@ var Polygon = require('polygon')
                     if (BP3D.Core.Utils.pointInPolygon(vec3.x, vec3.z, rooms[i].interiorCorners) &&
                         !BP3D.Core.Utils.polygonPolygonIntersect(corners, rooms[i].interiorCorners)) {
                         isInARoom = true;
-                        return true;
                     }
                 }
                 if (!isInARoom) {
@@ -2068,19 +2067,19 @@ var Polygon = require('polygon')
                 }
 
                 // check if we are outside all other objects
-                // if (this.obstructFloorMoves) {
-                //     var objects = this.model.scene.getItems();
-                //     for (let i = 0; i < objects.length; i++) {
-                //         if (objects[i] === this || !objects[i].obstructFloorMoves) {
-                //             continue;
-                //         }
-                //         if (!BP3D.Core.Utils.polygonOutsidePolygon(corners, objects[i].getCorners('x', 'z')) ||
-                //             BP3D.Core.Utils.polygonPolygonIntersect(corners, objects[i].getCorners('x', 'z'))) {
-                //             //console.log('object not outside other objects');
-                //             return false;
-                //         }
-                //     }
-                // }
+                if (this.obstructFloorMoves) {
+                    var objects = this.model.scene.getItems();
+                    for (let i = 0; i < objects.length; i++) {
+                        if (objects[i] === this || !objects[i].obstructFloorMoves) {
+                            continue;
+                        }
+                        if (!BP3D.Core.Utils.polygonOutsidePolygon(corners, objects[i].getCorners('x', 'z')) ||
+                            BP3D.Core.Utils.polygonPolygonIntersect(corners, objects[i].getCorners('x', 'z'))) {
+                            //console.log('object not outside other objects');
+                            return false;
+                        }
+                    }
+                }
                 return true;
             };
             return FloorItem;
@@ -3696,12 +3695,19 @@ var Polygon = require('polygon')
                 // callback is fired when texture loads
                 callback = function (texture) {
                     scene.needsUpdate = true;
+                    THREE.Cache.add(url, texture);
                 };
                 var textureData = edge.getTexture();
                 var stretch = textureData.stretch;
                 var url = textureData.url;
                 var scale = textureData.scale;
-                texture = new THREE.TextureLoader().load(url, callback, null, null);
+                if(THREE.Cache.get(url)===undefined){
+                    texture = new THREE.TextureLoader().load(url, callback, null, null);
+                }
+                else{
+                    texture = THREE.Cache.get(url);
+                }
+                
                 // texture = THREE.ImageUtils.loadTexture(url, null, callback);
                 if (!stretch) {
                     var height = wall.height;
@@ -4674,6 +4680,7 @@ Contributors:
 
             function init() {
                 THREE.ImageUtils.crossOrigin = "";
+                THREE.Cache.enabled = true;
                 domElement = scope.element.get(0); // Container
                 camera = new THREE.PerspectiveCamera(45, 1, 1, 10000);
                 renderer = new THREE.WebGLRenderer({

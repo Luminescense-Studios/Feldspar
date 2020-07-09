@@ -17,9 +17,24 @@ import {
   FaPencilAlt,
   FaTrashAlt,
 } from "react-icons/fa";
+import { Tabs, Tab } from "react-bootstrap";
+import CardListSofa from "./AddItems/CardListSofa.js";
+import CardListRug from "./AddItems/CardListRug.js";
+import CardListMisc from "./AddItems/CardListMisc.js";
+import CardListArch from "./AddItems/CardListArch.js";
 
 class App extends Component {
-  componentDidMount() {
+  constructor(props) {
+    super(props);
+    this.state = {
+      key: "sofa",
+      loadData: initStructure,
+      blueprint3d: {},
+    };
+    this.engine = this.engine.bind(this);
+  }
+
+  engine() {
     /*
      * Camera Buttons
      */
@@ -177,9 +192,8 @@ class App extends Component {
      * Loading modal for items
      */
 
-    var ModalEffects = function (blueprint3dArg) {
+    var ModalEffects = function (blueprint3d) {
       // var scope = this;
-      var blueprint3d = blueprint3dArg;
       var itemsLoading = 0;
 
       this.setActiveItem = function (active) {
@@ -217,9 +231,7 @@ class App extends Component {
      * Side menu
      */
 
-    var SideMenu = function (blueprint3dArg, floorplanControlsArg, modalEffectsArg) {
-      var blueprint3d = blueprint3dArg;
-      var floorplanControls = floorplanControlsArg;
+    var SideMenu = function (blueprint3d, floorplanControls, modalEffects) {
       // var modalEffects = modalEffectsArg;
 
       var ACTIVE_CLASS = "active";
@@ -315,7 +327,6 @@ class App extends Component {
         if (newState === scope.states.FLOORPLAN) {
           floorplanControls.handleWindowResize();
           floorplanControls.updateFloorplanView();
-          
         }
 
         if (currentState === scope.states.FLOORPLAN) {
@@ -488,21 +499,20 @@ class App extends Component {
       init();
     };
 
-    var mainControls = function (blueprint3dArg) {
-      var blueprint3d = blueprint3dArg;
-
+    var mainControls = function (blueprint3d) {
       function newDesign() {
         blueprint3d.model.loadSerialized(initStructure);
       }
 
-      function loadDesign() {
-        // files = $("#loadFile").get(0).files;
-        // var reader  = new FileReader();
-        // reader.onload = function(event) {
-        //     var data = event.target.result;
-        //     blueprint3d.model.loadSerialized(data);
-        // };
-        // reader.readAsText(files[0]);
+      function loadDesign(event) {
+        var file1 = event.target.files[0];
+        var reader = new FileReader();
+        reader.onload = function () {
+          var data = reader.result;
+          blueprint3d.model.loadSerialized(data);
+        };
+        reader.readAsText(file1);
+        $("#loadFile").replaceWith($("#loadFile").val("").clone(true));
       }
 
       function saveDesign() {
@@ -531,37 +541,38 @@ class App extends Component {
      * Initialize!
      */
 
-    $(document).ready(function () {
-      // main setup
-      var opts = {
-        floorplannerElement: "floorplanner-canvas",
-        threeElement: "#viewer",
-        threeCanvasElement: "three-canvas",
-        textureDir: "rooms/textures/",
-        widget: false,
-      };
-      var blueprint3d = new BP3D.Blueprint3d(opts);
+    var blueprint3d = this.state.blueprint3d;
 
-      var modalEffects = new ModalEffects(blueprint3d);
-      var viewerFloorplanner = new ViewerFloorplanner(blueprint3d);
-      // eslint-disable-next-line no-unused-vars
-      var contextMenu = new ContextMenu(blueprint3d);
-      var sideMenu = new SideMenu(
-        blueprint3d,
-        viewerFloorplanner,
-        modalEffects
-      );
-      // eslint-disable-next-line no-unused-vars
-      var textureSelector = new TextureSelector(blueprint3d, sideMenu);
-      // eslint-disable-next-line no-unused-vars
-      var cameraButtons = new CameraButtons(blueprint3d);
-      mainControls(blueprint3d);
+    var modalEffects = new ModalEffects(blueprint3d);
+    var viewerFloorplanner = new ViewerFloorplanner(blueprint3d);
+    // eslint-disable-next-line no-unused-vars
+    var contextMenu = new ContextMenu(blueprint3d);
+    var sideMenu = new SideMenu(blueprint3d, viewerFloorplanner, modalEffects);
+    // eslint-disable-next-line no-unused-vars
+    var textureSelector = new TextureSelector(blueprint3d, sideMenu);
+    // eslint-disable-next-line no-unused-vars
+    var cameraButtons = new CameraButtons(blueprint3d);
+    mainControls(blueprint3d);
 
-      // This serialization format needs work
-      // Load a simple rectangle room
-      blueprint3d.model.loadSerialized(initStructure);
+    // This serialization format needs work
+    // Load a simple rectangle room
+    blueprint3d.model.loadSerialized(this.state.loadData);
+  }
+
+  componentDidMount() {
+    var opts = {
+      floorplannerElement: "floorplanner-canvas",
+      threeElement: "#viewer",
+      threeCanvasElement: "three-canvas",
+      textureDir: "rooms/textures/",
+      widget: false,
+    };
+    this.setState({ blueprint3d: new BP3D.Blueprint3d(opts) }, () => {
+      console.log(this.state.blueprint3d);
+      this.engine();
     });
   }
+
   render() {
     return (
       <div className="horizontal-container">
@@ -739,7 +750,7 @@ class App extends Component {
                 variant="secondary"
                 size="sm"
                 id="new"
-                className={"basic-button"}
+                className="basic-button"
               >
                 New Plan
               </Button>
@@ -747,17 +758,22 @@ class App extends Component {
                 variant="secondary"
                 size="sm"
                 id="saveFile"
-                className={"basic-button"}
+                className="basic-button"
               >
                 Save Plan
               </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                id="loadFile"
-                className={"basic-button"}
-              >
-                Load Plan
+
+              <Button variant="secondary" size="sm" className="lean-button">
+                <label className="file-button" htmlFor="loadFile">
+                  Load Plan
+                </label>
+                <input
+                  hidden
+                  variant="secondary"
+                  size="sm"
+                  type="file"
+                  id="loadFile"
+                />
               </Button>
             </div>
 
@@ -849,39 +865,26 @@ class App extends Component {
           </div>
           {/* Add Items */}
           <div id="add-items">
-            <div
-              model-name="sofa"
-              model-url="http://localhost:8001/assets/5f00c02ab799b5146c587be5"
-              model-type="1"
-              className="add-item"
+            <Tabs
+              id="controlled-tab-example"
+              activeKey={this.state.key}
+              onSelect={(k) => {
+                this.setState({ key: k });
+              }}
             >
-              <img src="https://rukminim1.flixcart.com/image/416/416/jh2aqvk0/diwan-settee/g/x/8/cream-color-rosewood-sheesham-uh-dwn-0010w-aarsun-brown-original-imaf53wahgfbm6qh.jpeg?q=70" alt="sofa" />
-            </div>
-            <div
-              model-name="book shelf"
-              model-url="http://localhost:8001/assets/5f01733ea56cad11bc1db3f4"
-              model-type="2"
-              className="add-item"
-            >
-              <img src="https://rukminim1.flixcart.com/image/416/416/jh2aqvk0/diwan-settee/g/x/8/cream-color-rosewood-sheesham-uh-dwn-0010w-aarsun-brown-original-imaf53wahgfbm6qh.jpeg?q=70" alt="sofa" />
-            </div>
-            <div
-              model-name="door"
-              model-url="http://localhost:8001/assets/5f01863c1468b92060621a76"
-              model-type="7"
-              className="add-item"
-            >
-              <img src="https://rukminim1.flixcart.com/image/416/416/jh2aqvk0/diwan-settee/g/x/8/cream-color-rosewood-sheesham-uh-dwn-0010w-aarsun-brown-original-imaf53wahgfbm6qh.jpeg?q=70" alt="sofa" />
-            </div>
-            
-            <div
-              model-name="window"
-              model-url="http://localhost:8001/assets/5f0195cc1468b92060621a7f"
-              model-type="3"
-              className="add-item"
-            >
-              <img src="https://rukminim1.flixcart.com/image/416/416/jh2aqvk0/diwan-settee/g/x/8/cream-color-rosewood-sheesham-uh-dwn-0010w-aarsun-brown-original-imaf53wahgfbm6qh.jpeg?q=70" alt="sofa" />
-            </div>
+              <Tab eventKey="sofa" title="Sofas">
+                <CardListSofa />
+              </Tab>
+              <Tab eventKey="rug" title="Rugs">
+                <CardListRug />
+              </Tab>
+              <Tab eventKey="misc" title="Misc">
+                <CardListMisc />
+              </Tab>
+              <Tab eventKey="arch" title="Architectural">
+                <CardListArch />
+              </Tab>
+            </Tabs>
           </div>
         </div>
         {/* End Right Column */}
