@@ -3,6 +3,12 @@ import {
     GLTFLoader
 } from "three/examples/jsm/loaders/GLTFLoader";
 import $ from "jquery";
+import {
+    BASE_URL,
+    ASSETS,
+    DEFAULT_FLOOR_MAP,
+    DEFAULT_WALL_MAP
+} from "../../Constants.js";
 
 export var BP3D;
 (function (BP3D) {
@@ -473,6 +479,12 @@ var __extends = (this && this.__extends) || function (d, b) {
                 this.errorColor = 0xff0000;
                 /** Does this object affect other floor items */
                 this.obstructFloorMoves = true;
+                /** Does this object affect other in wall items */
+                this.obstructInWallMoves = false;
+                /** Does this object affect other on floor items */
+                this.obstructOnFloorMoves = false;
+                /** Does this object affect other on ceiling items */
+                this.obstructCeilingMoves = false;
                 /** Show rotate option in context menu */
                 this.allowRotate = true;
                 /** */
@@ -1290,7 +1302,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     (function (Model) {
         /** The default wall texture. */
         var defaultWallTexture = {
-            url: "http://localhost:8001/assets/5ef84dbd8188602a98c95526",
+            url: BASE_URL + ASSETS + DEFAULT_WALL_MAP,
             stretch: true,
             scale: 0
         };
@@ -1449,7 +1461,7 @@ var Polygon = require('polygon')
     (function (Model) {
         /** Default texture to be used if nothing is provided. */
         var defaultRoomTexture = {
-            url: "http://localhost:8001/assets/5ef849c28188602a98c95524",
+            url: BASE_URL + ASSETS + DEFAULT_FLOOR_MAP,
             scale: 400
         };
         /**
@@ -2068,9 +2080,24 @@ var Polygon = require('polygon')
 
                 // check if we are outside all other objects
                 if (this.obstructFloorMoves) {
-                    var objects = this.model.scene.getItems();
+                    let objects = this.model.scene.getItems();
                     for (let i = 0; i < objects.length; i++) {
                         if (objects[i] === this || !objects[i].obstructFloorMoves) {
+                            continue;
+                        }
+                        if (!BP3D.Core.Utils.polygonOutsidePolygon(corners, objects[i].getCorners('x', 'z')) ||
+                            BP3D.Core.Utils.polygonPolygonIntersect(corners, objects[i].getCorners('x', 'z'))) {
+                            //console.log('object not outside other objects');
+                            return false;
+                        }
+                    }
+                }
+
+                // check if we are outside all other on floor objects
+                if (this.obstructOnFloorMoves) {
+                    let objects = this.model.scene.getItems();
+                    for (let i = 0; i < objects.length; i++) {
+                        if (objects[i] === this || !objects[i].obstructOnFloorMoves) {
                             continue;
                         }
                         if (!BP3D.Core.Utils.polygonOutsidePolygon(corners, objects[i].getCorners('x', 'z')) ||
@@ -2085,6 +2112,159 @@ var Polygon = require('polygon')
             return FloorItem;
         })(Items.Item);
         Items.FloorItem = FloorItem;
+    })(Items = BP3D.Items || (BP3D.Items = {}));
+})(BP3D || (BP3D = {}));
+
+(function (BP3D) {
+    // eslint-disable-next-line no-unused-vars
+    var Items;
+    (function (Items) {
+        /**
+         * AnyWhere Item
+         */
+        var AnywhereItem = (function (_super) {
+            __extends(AnywhereItem, _super);
+
+            function AnywhereItem(model, metadata, geometry, material, position, rotation, scale) {
+                _super.call(this, model, metadata, geometry, material, position, rotation, scale);
+            };
+            /** */
+            AnywhereItem.prototype.placeInRoom = function () {
+                if (!this.position_set) {
+                    var center = this.model.floorplan.getCenter();
+                    this.position.x = center.x;
+                    this.position.z = center.z;
+                    this.position.y = 0.5 * (this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y);
+                }
+            };;
+
+            AnywhereItem.prototype.moveToPosition = function (vec3, intersection) {
+                // keeps the position in the room
+                var center = this.model.floorplan.getCenter();
+                if (!this.isValidPosition(vec3)) {
+                    this.showError(vec3);
+                    return;
+                } else {
+                    vec3.y = center.y + 40;
+                    this.hideError();
+                    // if (vec3.y < 0.5 * (this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y)) {
+                    //     vec3.y = this.position.y;
+                    // } else {
+                    //     console.log("UP");
+                    //     vec3.y = center.y + 40;
+                    // }
+                    this.position.copy(vec3);
+                }
+            };
+            /** */
+            AnywhereItem.prototype.isValidPosition = function (vec3) {
+                var corners = this.getCorners('x', 'z', vec3);
+                // check if we are in a room
+                var rooms = this.model.floorplan.getRooms();
+                var isInARoom = false;
+                for (let i = 0; i < rooms.length; i++) {
+                    if (BP3D.Core.Utils.pointInPolygon(vec3.x, vec3.z, rooms[i].interiorCorners) &&
+                        !BP3D.Core.Utils.polygonPolygonIntersect(corners, rooms[i].interiorCorners)) {
+                        isInARoom = true;
+                    }
+                }
+                if (!isInARoom) {
+                    //console.log('object not in a room');
+                    return false;
+                }
+
+                return true;
+            };
+            return AnywhereItem;
+        })(Items.FloorItem);
+        Items.AnywhereItem = AnywhereItem;
+    })(Items = BP3D.Items || (BP3D.Items = {}));
+})(BP3D || (BP3D = {}));
+
+(function (BP3D) {
+    // eslint-disable-next-line no-unused-vars
+    var Items;
+    (function (Items) {
+        /**
+         * AnyWhere Item
+         */
+        var CeilingItem = (function (_super) {
+            __extends(CeilingItem, _super);
+
+            function CeilingItem(model, metadata, geometry, material, position, rotation, scale) {
+                _super.call(this, model, metadata, geometry, material, position, rotation, scale);
+                this.obstructCeilingMoves = true;
+                this.obstructFloorMoves = false;
+                this.castShadow = false;
+                this.receiveShadow = false;
+            };
+            /** */
+            CeilingItem.prototype.placeInRoom = function () {
+                if (!this.position_set) {
+                    var center = this.model.floorplan.getCenter();
+                    this.position.x = center.x;
+                    this.position.z = center.z;
+                    this.position.y = BP3D.Core.Configuration.getNumericValue(BP3D.Core.configWallHeight) - 0.5 * (this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y);
+                }
+            };
+
+            CeilingItem.prototype.resized = function () {
+                this.position.y = BP3D.Core.Configuration.getNumericValue(BP3D.Core.configWallHeight) - this.halfSize.y;
+            };
+
+            CeilingItem.prototype.moveToPosition = function (vec3, intersection) {
+                // keeps the position in the room
+                if (!this.isValidPosition(vec3)) {
+                    this.showError(vec3);
+                    return;
+                } else {
+                    this.hideError();
+                    // if (vec3.y < 0.5 * (this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y)) {
+                    //     vec3.y = this.position.y;
+                    // } else {
+                    //     console.log("UP");
+                    vec3.y = this.position.y;
+                    // }
+                    this.position.copy(vec3);
+                }
+            };
+            /** */
+            CeilingItem.prototype.isValidPosition = function (vec3) {
+                var corners = this.getCorners('x', 'z', vec3);
+                // check if we are in a room
+                var rooms = this.model.floorplan.getRooms();
+                var isInARoom = false;
+                for (let i = 0; i < rooms.length; i++) {
+                    if (BP3D.Core.Utils.pointInPolygon(vec3.x, vec3.z, rooms[i].interiorCorners) &&
+                        !BP3D.Core.Utils.polygonPolygonIntersect(corners, rooms[i].interiorCorners)) {
+                        isInARoom = true;
+                    }
+                }
+                if (!isInARoom) {
+                    //console.log('object not in a room');
+                    return false;
+                }
+
+                // check if we are outside all other on floor objects
+                if (this.obstructCeilingMoves) {
+                    let objects = this.model.scene.getItems();
+                    for (let i = 0; i < objects.length; i++) {
+                        if (objects[i] === this || !objects[i].obstructCeilingMoves) {
+                            continue;
+                        }
+                        if (!BP3D.Core.Utils.polygonOutsidePolygon(corners, objects[i].getCorners('x', 'z')) ||
+                            BP3D.Core.Utils.polygonPolygonIntersect(corners, objects[i].getCorners('x', 'z'))) {
+                            //console.log('object not outside other objects');
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            };
+            return CeilingItem;
+        })(Items.FloorItem);
+        Items.CeilingItem = CeilingItem;
     })(Items = BP3D.Items || (BP3D.Items = {}));
 })(BP3D || (BP3D = {}));
 
@@ -2121,6 +2301,8 @@ var Polygon = require('polygon')
                 this.addToWall = false;
                 /** */
                 this.boundToFloor = false;
+
+                this.obstructInWallMoves = false;
                 /** */
                 this.frontVisible = false;
                 /** */
@@ -2197,11 +2379,34 @@ var Polygon = require('polygon')
             };;
             /** */
             WallItem.prototype.moveToPosition = function (vec3, intersection) {
-                this.changeWallEdge(intersection.object.edge);
-                this.boundMove(vec3);
-                this.position.copy(vec3);
-                this.redrawWall();
+                if (this.isValidPosition(vec3)) {
+                    this.changeWallEdge(intersection.object.edge);
+                    this.boundMove(vec3);
+                    this.position.copy(vec3);
+                    this.redrawWall();
+                } else {
+                    return;
+                }
             };
+
+            WallItem.prototype.isValidPosition = function (vec3) {
+                var corners = this.getCorners('x', 'z', vec3);
+                if (this.obstructInWallMoves) {
+                    var objects = this.model.scene.getItems();
+                    for (let i = 0; i < objects.length; i++) {
+                        if (objects[i] === this || !objects[i].obstructInWallMoves) {
+                            continue;
+                        }
+                        if (!BP3D.Core.Utils.polygonOutsidePolygon(corners, objects[i].getCorners('x', 'z')) ||
+                            BP3D.Core.Utils.polygonPolygonIntersect(corners, objects[i].getCorners('x', 'z'))) {
+                            //console.log('object not outside other objects');
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            };
+
             /** */
             WallItem.prototype.getWallOffset = function () {
                 return this.wallOffsetScalar;
@@ -2264,6 +2469,8 @@ var Polygon = require('polygon')
                 vec3.z = this.getWallOffset();
                 vec3.applyMatrix4(edge.invInteriorTransform);
             };
+
+            //obstruct
             return WallItem;
         })(Items.Item);
         Items.WallItem = WallItem;
@@ -2282,6 +2489,7 @@ var Polygon = require('polygon')
             function InWallItem(model, metadata, geometry, material, position, rotation, scale) {
                 _super.call(this, model, metadata, geometry, material, position, rotation, scale);
                 this.addToWall = true;
+                this.obstructInWallMoves = true;
             };
             /** */
             InWallItem.prototype.getWallOffset = function () {
@@ -2306,6 +2514,7 @@ var Polygon = require('polygon')
             function InWallFloorItem(model, metadata, geometry, material, position, rotation, scale) {
                 _super.call(this, model, metadata, geometry, material, position, rotation, scale);
                 this.boundToFloor = true;
+                this.obstructInWallMoves = true;
             };
             return InWallFloorItem;
         })(Items.InWallItem);
@@ -2326,6 +2535,7 @@ var Polygon = require('polygon')
                 _super.call(this, model, metadata, geometry, material, position, rotation, scale);
                 this.obstructFloorMoves = false;
                 this.receiveShadow = true;
+                this.obstructOnFloorMoves = true;
             };
             return OnFloorItem;
         })(Items.FloorItem);
@@ -2364,7 +2574,9 @@ var Polygon = require('polygon')
             3: Items.InWallItem,
             7: Items.InWallFloorItem,
             8: Items.OnFloorItem,
-            9: Items.WallFloorItem
+            9: Items.WallFloorItem,
+            10: Items.AnywhereItem,
+            11: Items.CeilingItem,
         };
         /** Factory class to create items. */
         var Factory = (function () {
@@ -2409,7 +2621,8 @@ var Polygon = require('polygon')
                 this.scene = new THREE.Scene();
                 // init item loader
                 this.loader = new GLTFLoader();
-                this.loader.crossOrigin = "";
+                // this.loader.crossOrigin = "";
+                // this.loader.setCrossOrigin('use-credentials');
             }
             /** Adds a non-item, basically a mesh, to the scene.
              * @param mesh The mesh to be added.
@@ -3126,7 +3339,8 @@ var Polygon = require('polygon')
                 DRAGGING: 2,
                 ROTATING: 3,
                 ROTATING_FREE: 4,
-                PANNING: 5
+                PANNING: 5,
+                DRAGGING_FREE: 6
             };
             var state = states.UNSELECTED;
             this.needsUpdate = true;
@@ -3144,11 +3358,7 @@ var Polygon = require('polygon')
             function itemLoaded(item) {
                 if (!item.position_set) {
                     scope.setSelectedObject(item);
-                    // switchState(states.DRAGGING);
-                    var pos = item.position.clone();
-                    pos.y = 0;
-                    var vec = three.projectVector(pos);
-                    clickPressed(vec);
+                    switchState(states.DRAGGING_FREE);
                 }
                 item.position_set = true;
             }
@@ -3221,7 +3431,16 @@ var Polygon = require('polygon')
                     mouse.x = event.clientX;
                     mouse.y = event.clientY;
                     if (!mouseDown) {
-                        updateIntersections();
+                        // console.log("Mouse Moving");
+                        if (state === states.DRAGGING_FREE) {
+                            // console.log("in Dragging without mouse down")
+                            clickDragged();
+                            hud.update();
+                            scope.needsUpdate = true;
+                        } else {
+                            // console.log("updating intersections");
+                            updateIntersections();
+                        }
                     }
                     switch (state) {
                         case states.UNSELECTED:
@@ -3276,8 +3495,10 @@ var Polygon = require('polygon')
                         case states.ROTATING_FREE:
                             switchState(states.SELECTED);
                             break;
+                        case states.DRAGGING_FREE:
+                            switchState(states.DRAGGING);
+                            break;
                         default:
-                            checkWallsAndFloors();
                             break;
                     }
                 }
@@ -3312,7 +3533,6 @@ var Polygon = require('polygon')
                         case states.ROTATING_FREE:
                             break;
                         default:
-                            checkWallsAndFloors();
                             break;
                     }
                 }
@@ -3343,6 +3563,9 @@ var Polygon = require('polygon')
                         three.setCursorStyle("move");
                         clickPressed();
                         controls.enabled = false;
+                        break;
+                    case states.DRAGGING_FREE:
+                        three.setCursorStyle("move");
                         break;
                     default:
                         break;
@@ -3534,7 +3757,9 @@ var Polygon = require('polygon')
             function buildFloor() {
                 var textureSettings = scope.room.getTexture();
                 // setup texture
-                var floorTexture = new THREE.TextureLoader().load(textureSettings.url);
+                var texLoader = new THREE.TextureLoader();
+                texLoader.setCrossOrigin('');
+                var floorTexture = texLoader.load(textureSettings.url);
                 floorTexture.wrapS = THREE.RepeatWrapping;
                 floorTexture.wrapT = THREE.RepeatWrapping;
                 floorTexture.repeat.set(1, 1);
@@ -3701,13 +3926,12 @@ var Polygon = require('polygon')
                 var stretch = textureData.stretch;
                 var url = textureData.url;
                 var scale = textureData.scale;
-                if(THREE.Cache.get(url)===undefined){
+                if (THREE.Cache.get(url) === undefined) {
                     texture = new THREE.TextureLoader().load(url, callback, null, null);
-                }
-                else{
+                } else {
                     texture = THREE.Cache.get(url);
                 }
-                
+
                 // texture = THREE.ImageUtils.loadTexture(url, null, callback);
                 if (!stretch) {
                     var height = wall.height;
@@ -3932,15 +4156,15 @@ var Polygon = require('polygon')
                 // spotLight.castShadow = true;
                 // scene.add(spotLight);
 
-                dirLight = new THREE.DirectionalLight(0x404040, 1);
+                dirLight = new THREE.DirectionalLight(0x5c5c5c, 1);
                 dirLight.position.set(0, 10, 0);
                 dirLight.castShadow = true;
                 dirLight.target.position.set(0, 0, 0);
                 scene.add(dirLight);
                 scene.add(dirLight.target);
 
-                dirLight.shadow.mapSize.width = 256;
-                dirLight.shadow.mapSize.height = 256;
+                dirLight.shadow.mapSize.width = 512;
+                dirLight.shadow.mapSize.height = 512;
                 dirLight.shadow.camera.near = 0.5;
                 dirLight.shadow.camera.far = 500;
                 // dirLight.shadow.bias = -0.0001;
@@ -4679,7 +4903,8 @@ Contributors:
             this.nothingClicked = $.Callbacks();
 
             function init() {
-                THREE.ImageUtils.crossOrigin = "";
+                // THREE.ImageUtils.crossOrigin = "";
+                // THREE.TextureLoader.setCrossOrigin('anonymous')
                 THREE.Cache.enabled = true;
                 domElement = scope.element.get(0); // Container
                 camera = new THREE.PerspectiveCamera(45, 1, 1, 10000);

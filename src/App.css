@@ -11,7 +11,6 @@ body {
   width: 100%;
 }
 
-
 /*
  * Sidebar
  */
@@ -23,6 +22,8 @@ body {
   display: flex;
   flex-direction: column;
   overflow-y: scroll;
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
 }
 ::-webkit-scrollbar {
   width: 0px;
@@ -37,7 +38,7 @@ body {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  padding: 0px 20px 3px 20px; 
+  padding: 0px 20px 3px 20px;
 }
 
 .nav-sidebar {
@@ -80,8 +81,10 @@ body {
 
 .thumbnail {
   width: 100%;
+  height: 7rem;
   border-radius: 10px;
   padding: 2px;
+  object-fit: cover;
 }
 
 /*
@@ -99,8 +102,8 @@ body {
   background-color: rgba(50, 50, 50, 0.9);
 }
 
-#loading-modal  h1 {
-  text-align: center; 
+#loading-modal h1 {
+  text-align: center;
   margin-top: 30%;
   color: #fff;
 }
@@ -113,16 +116,15 @@ body {
   position: absolute;
   bottom: 20px;
   right: 0;
-  padding: 0 20px;  
+  padding: 0 20px;
   text-align: right;
-  
 }
 
 #main-controls {
   position: absolute;
   top: 20px;
   right: 20px;
-  padding: 0;  
+  padding: 0;
 }
 
 .basic-button {
@@ -161,7 +163,7 @@ label {
   right: 0;
   top: 0;
   margin: 20px 0;
-  padding: 0 20px; 
+  padding: 0 20px;
   width: fit-content;
 }
 
@@ -169,7 +171,7 @@ label {
   position: absolute;
   right: 20px;
   bottom: 20px;
-  background-color: rgba(0, 0, 0, 0.50);
+  background-color: rgba(0, 0, 0, 0.5);
   color: #ffffff;
   padding: 5px 10px;
   z-index: 10;

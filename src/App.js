@@ -2,7 +2,7 @@ import "./App.css";
 import React, { Component } from "react";
 import $ from "jquery";
 import { BP3D } from "./engine/blue/blueprint3d.js";
-import { initStructure } from "./Constants.js";
+import { INIT_STRUCTURE } from "./Constants.js";
 import Button from "react-bootstrap/Button";
 import {
   FaSearchMinus,
@@ -18,17 +18,21 @@ import {
   FaTrashAlt,
 } from "react-icons/fa";
 import { Tabs, Tab } from "react-bootstrap";
-import CardListSofa from "./AddItems/CardListSofa.js";
-import CardListRug from "./AddItems/CardListRug.js";
-import CardListMisc from "./AddItems/CardListMisc.js";
-import CardListArch from "./AddItems/CardListArch.js";
+import CardListSofa from "./AddItems/CardListSofa.jsx";
+import CardListChair from "./AddItems/CardListChair.jsx";
+import CardListBed from "./AddItems/CardListBed.jsx";
+import CardListRug from "./AddItems/CardListRug.jsx";
+import CardListMisc from "./AddItems/CardListMisc.jsx";
+import CardListKitchen from "./AddItems/CardListKitchen.jsx";
+import CardListArch from "./AddItems/CardListArch.jsx";
+import FloorTextureList from "./TextureList/FloorTextureList";
+import WallTextureList from "./TextureList/WallTextureList";
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       key: "sofa",
-      loadData: initStructure,
       blueprint3d: {},
     };
     this.engine = this.engine.bind(this);
@@ -288,6 +292,7 @@ class App extends Component {
       function tabClicked(tab) {
         return function () {
           // Stop three from spinning
+          initItems();
           blueprint3d.three.stopSpin();
 
           // Selected a new tab
@@ -356,9 +361,10 @@ class App extends Component {
 
       // TODO: this doesn't really belong here
       function initItems() {
+        $("#add-items").find(".add-item").off("click");
         $("#add-items")
           .find(".add-item")
-          .mousedown(function (e) {
+          .click(function (e) {
             var modelUrl = $(this).attr("model-url");
             var itemType = parseInt($(this).attr("model-type"));
             var metadata = {
@@ -388,6 +394,7 @@ class App extends Component {
       var currentTarget = null;
 
       function initTextureSelectors() {
+        $(".texture-select-thumbnail").off("click");
         $(".texture-select-thumbnail").click(function (e) {
           var textureUrl = $(this).attr("texture-url");
           var textureStretch = $(this).attr("texture-stretch") === "true";
@@ -400,10 +407,15 @@ class App extends Component {
 
       function init() {
         three.wallClicked.add(wallClicked);
+        three.wallClicked.add(initTextureSelectors);
         three.floorClicked.add(floorClicked);
+        three.wallClicked.add(initTextureSelectors);
         three.itemSelectedCallbacks.add(reset);
+        three.wallClicked.add(initTextureSelectors);
         three.nothingClicked.add(reset);
+        three.wallClicked.add(initTextureSelectors);
         sideMenu.stateChangeCallbacks.add(reset);
+        three.wallClicked.add(initTextureSelectors);
         initTextureSelectors();
       }
 
@@ -411,17 +423,20 @@ class App extends Component {
         currentTarget = halfEdge;
         $("#floorTexturesDiv").hide();
         $("#wallTextures").show();
+        initTextureSelectors();
       }
 
       function floorClicked(room) {
         currentTarget = room;
         $("#wallTextures").hide();
         $("#floorTexturesDiv").show();
+        initTextureSelectors();
       }
 
       function reset() {
         $("#wallTextures").hide();
         $("#floorTexturesDiv").hide();
+        initTextureSelectors();
       }
 
       init();
@@ -501,7 +516,7 @@ class App extends Component {
 
     var mainControls = function (blueprint3d) {
       function newDesign() {
-        blueprint3d.model.loadSerialized(initStructure);
+        blueprint3d.model.loadSerialized(INIT_STRUCTURE);
       }
 
       function loadDesign(event) {
@@ -556,7 +571,7 @@ class App extends Component {
 
     // This serialization format needs work
     // Load a simple rectangle room
-    blueprint3d.model.loadSerialized(this.state.loadData);
+    blueprint3d.model.loadSerialized(INIT_STRUCTURE);
   }
 
   componentDidMount() {
@@ -673,70 +688,12 @@ class App extends Component {
             id="floorTexturesDiv"
             style={{ display: "none", padding: "0 20px" }}
           >
-            <div className="panel panel-default">
-              <div className="panel-heading">Adjust Floor</div>
-              <div className="texture-tiles" style={{ color: "#333333" }}>
-                <div
-                  className="texture-select-thumbnail"
-                  texture-url="http://localhost:8001/assets/5efaf18b26d7ff32d843f48e"
-                  texture-stretch="false"
-                  texture-scale="300"
-                >
-                  <img
-                    className="thumbnail"
-                    alt="Thumbnail light fine wood"
-                    src="http://localhost:8001/assets/5efaf25b26d7ff32d843f48f"
-                  />
-                </div>
-              </div>
-            </div>
+            <FloorTextureList />
           </div>
 
           {/* Wall Textures */}
           <div id="wallTextures" style={{ display: "none", padding: "0 20px" }}>
-            <div className="panel panel-default">
-              <div className="panel-heading">Adjust Wall</div>
-              <div className="texture-tiles" style={{ color: "#333333" }}>
-                <div
-                  className="texture-select-thumbnail"
-                  texture-url="http://localhost:8001/assets/5efaf2cf26d7ff32d843f490"
-                  texture-stretch="false"
-                  texture-scale="300"
-                >
-                  <img
-                    className="thumbnail"
-                    alt="Thumbnail marbletiles"
-                    src="http://localhost:8001/assets/5efaf365ae554b2dd8091c5f"
-                  />
-                </div>
-
-                <div
-                  className="texture-select-thumbnail"
-                  texture-url="http://localhost:8001/assets/5efb48a0dfc95a13c4fee860"
-                  texture-stretch="true"
-                  texture-scale=""
-                >
-                  <img
-                    className="thumbnail"
-                    alt="Thumbnail wallmap yellow"
-                    src="http://localhost:8001/assets/5efb48eadfc95a13c4fee861"
-                  />
-                </div>
-
-                <div
-                  className="texture-select-thumbnail"
-                  texture-url="http://localhost:8001/assets/5efb4929dfc95a13c4fee862"
-                  texture-stretch="false"
-                  texture-scale="100"
-                >
-                  <img
-                    className="thumbnail"
-                    alt="Thumbnail light brick"
-                    src="http://localhost:8001/assets/5efb4978dfc95a13c4fee863"
-                  />
-                </div>
-              </div>
-            </div>
+            <WallTextureList />
           </div>
         </div>
         {/* End Left Column */}
@@ -875,11 +832,20 @@ class App extends Component {
               <Tab eventKey="sofa" title="Sofas">
                 <CardListSofa />
               </Tab>
+              <Tab eventKey="chair" title="Chairs">
+                <CardListChair />
+              </Tab>
+              <Tab eventKey="bed" title="Beds">
+                <CardListBed />
+              </Tab>
               <Tab eventKey="rug" title="Rugs">
                 <CardListRug />
               </Tab>
               <Tab eventKey="misc" title="Misc">
                 <CardListMisc />
+              </Tab>
+              <Tab eventKey="kitchen" title="Kitchen">
+                <CardListKitchen />
               </Tab>
               <Tab eventKey="arch" title="Architectural">
                 <CardListArch />
