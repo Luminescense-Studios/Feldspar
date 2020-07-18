@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import CardList from "./CardList.jsx";
-import {BASE_URL, MODELS, RETRIEVE, RUG_CATEGORY} from "../Constants.js";
+import {BASE_URL, MODELS, RETRIEVE, RUG_CATEGORY} from "../../Constants.js";
 import axios from "axios";
 
 export default class CardListRug extends Component {

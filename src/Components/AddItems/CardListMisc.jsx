@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import CardList from "./CardList.jsx";
-import {BASE_URL, MODELS, RETRIEVE, MISC_CATEGORY} from "../Constants.js";
+import {BASE_URL, MODELS, RETRIEVE, MISC_CATEGORY} from "../../Constants.js";
 import axios from "axios";
 
 export default class CardListMisc extends Component {

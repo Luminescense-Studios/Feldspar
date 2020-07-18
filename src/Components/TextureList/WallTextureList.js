@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import TextureList from "./TextureList.js";
-import { BASE_URL, TEXTURES, RETRIEVE, WALL_CATEGORY, WALL_SOLID_CATEGORY, WALL_TILE_CATEGORY } from "../Constants.js";
+import { BASE_URL, TEXTURES, RETRIEVE, WALL_CATEGORY, WALL_SOLID_CATEGORY, WALL_TILE_CATEGORY } from "../../Constants.js";
 import axios from "axios";
 
 export default class WallTextureList extends Component {

@@ -8,7 +8,7 @@ import {
     ASSETS,
     DEFAULT_FLOOR_MAP,
     DEFAULT_WALL_MAP
-} from "../../Constants.js";
+} from "../Constants.js";
 
 export var BP3D;
 (function (BP3D) {
@@ -3111,6 +3111,8 @@ var Polygon = require('polygon')
                 this.mouseDown = false;
                 /** */
                 this.mouseMoved = false;
+                /** */
+                this.mouseMovedCount = 0;
                 /** in ThreeJS coords */
                 this.mouseX = 0;
                 /** in ThreeJS coords */
@@ -3179,8 +3181,10 @@ var Polygon = require('polygon')
             };
             /** */
             Floorplanner.prototype.mousedown = function () {
+                // console.log("mouse down");
                 this.mouseDown = true;
                 this.mouseMoved = false;
+                this.mouseMovedCount = 0;
                 this.lastX = this.rawMouseX;
                 this.lastY = this.rawMouseY;
                 // delete
@@ -3196,6 +3200,8 @@ var Polygon = require('polygon')
             };
             /** */
             Floorplanner.prototype.mousemove = function (event) {
+                // console.log("mouse move");
+                this.mouseMovedCount++;
                 this.mouseMoved = true;
                 // update mouse
                 this.rawMouseX = event.clientX;
@@ -3253,8 +3259,12 @@ var Polygon = require('polygon')
             /** */
             Floorplanner.prototype.mouseup = function () {
                 this.mouseDown = false;
+                // console.log("mouse up");
+                // console.log(this.mouseMoved);
                 // drawing
-                if (this.mode === Floorplanner_1.floorplannerModes.DRAW && !this.mouseMoved) {
+                if (this.mode === Floorplanner_1.floorplannerModes.DRAW && this.mouseMovedCount===1) {
+                    console.log(this.targetX);
+                    console.log(this.targetY);
                     var corner = this.floorplan.newCorner(this.targetX, this.targetY);
                     if (this.lastNode != null) {
                         this.floorplan.newWall(this.lastNode, corner);

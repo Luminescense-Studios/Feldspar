@@ -1,6 +1,6 @@
-import "../App.css";
+import "../../App.css";
 import React, { Component } from "react";
-import { BASE_URL, ASSETS } from "../Constants.js";
+import { BASE_URL, ASSETS } from "../../Constants.js";
 
 export default class TextureList extends Component {
   render() {

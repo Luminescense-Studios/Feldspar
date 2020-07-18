@@ -8,7 +8,7 @@ import {
   FLOOR_WOOD_CATEGORY,
   FLOOR_MARBLE_CATEGORY,
   FLOOR_TILE_CATEGORY,
-} from "../Constants.js";
+} from "../../Constants.js";
 import axios from "axios";
 
 export default class FloorTextureList extends Component {

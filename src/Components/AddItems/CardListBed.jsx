@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 import CardList from "./CardList.jsx";
-import {BASE_URL, MODELS, RETRIEVE, CHAIR_CATEGORY} from "../Constants.js";
+import {BASE_URL, MODELS, RETRIEVE, BED_CATEGORY} from "../../Constants.js";
 import axios from "axios";
 
-export default class CardListSofa extends Component {
+export default class CardListArch extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -12,13 +12,14 @@ export default class CardListSofa extends Component {
   }
 
   componentDidMount() {
-    let furnitureCategory = {category: CHAIR_CATEGORY};
+    let furnitureCategory = {category: BED_CATEGORY};
 
     axios.post(BASE_URL + MODELS + RETRIEVE, furnitureCategory)
       .then(res => {
         this.setState({itemList: res.data});
       })
   }
+
 
   render() {
     return (
