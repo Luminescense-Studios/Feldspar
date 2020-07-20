@@ -10,6 +10,7 @@ import {
     DEFAULT_WALL_MAP
 } from "../Constants.js";
 
+
 export var BP3D;
 (function (BP3D) {
     // eslint-disable-next-line no-unused-vars
@@ -3262,7 +3263,7 @@ var Polygon = require('polygon')
                 // console.log("mouse up");
                 // console.log(this.mouseMoved);
                 // drawing
-                if (this.mode === Floorplanner_1.floorplannerModes.DRAW && this.mouseMovedCount===1) {
+                if (this.mode === Floorplanner_1.floorplannerModes.DRAW && (this.mouseMovedCount === 1 || this.mouseMovedCount === 0)) {
                     console.log(this.targetX);
                     console.log(this.targetY);
                     var corner = this.floorplan.newCorner(this.targetX, this.targetY);
@@ -3341,7 +3342,9 @@ var Polygon = require('polygon')
             var mouseoverObject;
             var selectedObject;
             var mouseDown = false;
+            // eslint-disable-next-line no-unused-vars
             var mouseMoved = false; // has mouse moved since down click
+            var mouseMovedCounter = 0;
             var rotateMouseOver = false;
             var states = {
                 UNSELECTED: 0,
@@ -3412,6 +3415,7 @@ var Polygon = require('polygon')
             }
 
             function checkWallsAndFloors() {
+                // console.log("checking floor and wall")
                 // double click on a wall or floor brings up texture change modal
                 if (state === states.UNSELECTED && mouseoverObject == null) {
                     // check walls
@@ -3438,6 +3442,8 @@ var Polygon = require('polygon')
                 if (scope.enabled) {
                     event.preventDefault();
                     mouseMoved = true;
+                    // console.log("mousemoved")
+                    mouseMovedCounter++;
                     mouse.x = event.clientX;
                     mouse.y = event.clientY;
                     if (!mouseDown) {
@@ -3479,6 +3485,8 @@ var Polygon = require('polygon')
                 if (scope.enabled) {
                     event.preventDefault();
                     mouseMoved = false;
+                    // console.log("mousedown")
+                    mouseMovedCounter = 0;
                     mouseDown = true;
                     switch (state) {
                         case states.SELECTED:
@@ -3523,19 +3531,19 @@ var Polygon = require('polygon')
                             switchState(states.SELECTED);
                             break;
                         case states.ROTATING:
-                            if (!mouseMoved) {
+                            if (mouseMovedCounter === 0 || mouseMovedCounter === 1) {
                                 switchState(states.ROTATING_FREE);
                             } else {
                                 switchState(states.SELECTED);
                             }
                             break;
                         case states.UNSELECTED:
-                            if (!mouseMoved) {
+                            if (mouseMovedCounter === 0 || mouseMovedCounter === 1) {
                                 checkWallsAndFloors();
                             }
                             break;
                         case states.SELECTED:
-                            if (intersectedObject == null && !mouseMoved) {
+                            if (intersectedObject == null && (mouseMovedCounter === 0 || mouseMovedCounter === 1)) {
                                 switchState(states.UNSELECTED);
                                 checkWallsAndFloors();
                             }
@@ -3543,6 +3551,7 @@ var Polygon = require('polygon')
                         case states.ROTATING_FREE:
                             break;
                         default:
+                            checkWallsAndFloors();
                             break;
                     }
                 }
@@ -4585,6 +4594,11 @@ Contributors:
                 if (scope.noPan === true) {
                     return;
                 }
+
+                if ($('.modal-open').length) {
+                    return;
+                }
+
                 switch (event.keyCode) {
                     case scope.keys.UP:
                         scope.pan(new THREE.Vector2(0, scope.keyPanSpeed));
@@ -4711,7 +4725,7 @@ Contributors:
             this.domElement.addEventListener('touchstart', touchstart, false);
             this.domElement.addEventListener('touchend', touchend, false);
             this.domElement.addEventListener('touchmove', touchmove, false);
-            window.addEventListener('keydown', onKeyDown, false);
+            document.addEventListener('keydown', onKeyDown, false);
         };
     })(Three = BP3D.Three || (BP3D.Three = {}));
 })(BP3D || (BP3D = {}));

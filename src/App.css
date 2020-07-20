@@ -9,6 +9,7 @@ body {
   display: flex;
   flex-direction: row;
   width: 100%;
+  margin-top: 50px;
 }
 
 /*
@@ -122,8 +123,9 @@ body {
 
 #main-controls {
   position: absolute;
-  top: 20px;
+  top: 40px;
   right: 20px;
+  margin: 50px 0;
   padding: 0;
 }
 
@@ -161,8 +163,8 @@ label {
 #floorplanner-controls {
   position: absolute;
   right: 0;
-  top: 0;
-  margin: 20px 0;
+  top: 40px;
+  margin: 50px 0;
   padding: 0 20px;
   width: fit-content;
 }
@@ -200,6 +202,7 @@ label {
   overflow-y: auto;
   justify-content: start;
   margin: 10px;
+  display: none;
 }
 
 .item-card {
@@ -224,3 +227,63 @@ label {
 .item-card-body {
   padding: 0.5rem;
 }
+
+
+/*
+ * Top Bar
+ */
+.top-bar {
+  display: flex;
+  flex-direction: row;
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0;
+  padding: 0 20px;
+  width: 100%;
+  height: 50px;
+  justify-content: space-between;
+}
+
+.top-bar-login-button {
+  margin: auto 0;
+  align-self: flex-end;
+}
+
+.login-modal {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 400px;
+}
+
+.login-form-space {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  border-radius: 10px;
+  border-width: 1px;
+  border-color: #000000;
+  border-style: dashed;
+  padding: 20px;
+  width: 50%;
+}
+
+.login-modal-tab {
+  width: 50%;
+  text-align: center;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  width: 100%;
+}
+
+.login-form-input {
+  margin: 5px;
+  padding: 4px;
+}
+
+
