@@ -5,6 +5,8 @@ import Button from "react-bootstrap/Button";
 import { validateEmail, parseJwt } from "../../Utils/Utils";
 import axios from "axios";
 import { BASE_URL_AUTH, USERS, LOGIN } from "../../Constants.js";
+import SmallAlert from "./SmallAlert.jsx";
+import LargeAlert from "./LargeAlert.jsx";
 
 @inject("store")
 @observer
@@ -56,7 +58,6 @@ class LoginForm extends Component {
 
       try {
         let res = await axios.post(BASE_URL_AUTH + USERS + LOGIN, user);
-        console.log(res);
         this.setState({
           isError: false,
           isEmailExists: true,
@@ -65,10 +66,11 @@ class LoginForm extends Component {
         });
 
         const loggedInUser = parseJwt(res.data.accessToken);
-        this.props.store.setLoggedIn(true);
+        
         this.props.store.setUsername(loggedInUser.name);
         this.props.store.setAccessToken(res.data.accessToken);
         this.props.store.setRefreshToken(res.data.refreshToken);
+        this.props.store.setLoggedIn(true);
 
         this.props.store.setLoginModal(false);
       } catch (e) {
@@ -109,7 +111,9 @@ class LoginForm extends Component {
             this.handleLoginSubmit(e);
           }}
         >
-          {this.state.loginEmailFormatError && <div>invalid email</div>}
+          {this.state.loginEmailFormatError && (
+            <SmallAlert message="invalid Email" variant="danger" />
+          )}
           <input
             placeholder="example@xyz.com"
             variant="secondary"
@@ -134,14 +138,20 @@ class LoginForm extends Component {
             className="login-form-input"
           />
 
-          <Button disabled={this.state.isDisabled} type="submit">
+          <Button variant="danger" className="login-submit-button" disabled={this.state.isDisabled} type="submit">
             Login
           </Button>
         </form>
 
-        {!this.state.isEmailExists && <div>Email is not registered</div>}
-        {this.state.isError && <div>Some ErrorOcurred</div>}
-        {!this.state.isPasswordCorrect && <div>Password Incorrect</div>}
+        {!this.state.isEmailExists && (
+          <LargeAlert message="Email is not registered" variant="danger" />
+        )}
+        {this.state.isError && (
+          <LargeAlert message="Some ErrorOcurred" variant="danger" />
+        )}
+        {!this.state.isPasswordCorrect && (
+          <LargeAlert message="Password Incorrect" variant="danger" />
+        )}
       </div>
     );
   }

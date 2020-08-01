@@ -505,6 +505,10 @@ var __extends = (this && this.__extends) || function (d, b) {
                     return this.halfSize.z * 2.0;
                 };
                 /** */
+                this.getElevation = function () {
+                    return this.position.y - this.halfSize.y;
+                };
+                /** */
                 this.initObject = function () {
                     this.placeInRoom();
                     // select and stuff
@@ -540,7 +544,15 @@ var __extends = (this && this.__extends) || function (d, b) {
             /** */
             Item.prototype.remove = function () {
                 this.scene.removeItem(this);
-            };;
+            };
+            /** */
+            Item.prototype.isElevationAdjustable = function () {
+                return false;
+            };
+            /** */
+            Item.prototype.elevate = function (elevation) {
+                this.position.y = this.halfSize.y + elevation;
+            };
             /** */
             Item.prototype.resize = function (height, width, depth) {
                 var x = width / this.getWidth();
@@ -691,6 +703,203 @@ var __extends = (this && this.__extends) || function (d, b) {
                 ];
                 return corners;
             };
+
+            /**
+             * returns the 2d corners of the bounding polygon
+             *
+             * offset is Vector3 (used for getting corners of object at a new position)
+             *
+             * TODO: handle rotated objects better!
+             */
+            Item.prototype.getCornersXZ = function (xDim, yDim, position) {
+                position = position || this.position;
+                var halfSize = this.halfSize.clone();
+                let wallTol = 15;
+                var c1 = new THREE.Vector3(-(halfSize.x + wallTol), 0, -(halfSize.z + wallTol));
+                var c2 = new THREE.Vector3(halfSize.x + wallTol, 0, -(halfSize.z + wallTol));
+                var c3 = new THREE.Vector3(halfSize.x + wallTol, 0, halfSize.z + wallTol);
+                var c4 = new THREE.Vector3(-(halfSize.x + wallTol), 0, halfSize.z + wallTol);
+                var transform = new THREE.Matrix4();
+                //console.log(this.rotation.y);
+                transform.makeRotationY(this.rotation.y); //  + Math.PI/2)
+                c1.applyMatrix4(transform);
+                c2.applyMatrix4(transform);
+                c3.applyMatrix4(transform);
+                c4.applyMatrix4(transform);
+                c1.add(position);
+                c2.add(position);
+                c3.add(position);
+                c4.add(position);
+                //halfSize.applyMatrix4(transform);
+                //var min = position.clone().sub(halfSize);
+                //var max = position.clone().add(halfSize);
+                var corners = [{
+                        x: c1.x,
+                        y: c1.z
+                    },
+                    {
+                        x: c2.x,
+                        y: c2.z
+                    },
+                    {
+                        x: c3.x,
+                        y: c3.z
+                    },
+                    {
+                        x: c4.x,
+                        y: c4.z
+                    }
+                ];
+                return corners;
+            };
+
+            /**
+             * returns the 2d corners of the bounding polygon
+             *
+             * offset is Vector3 (used for getting corners of object at a new position)
+             *
+             * TODO: handle rotated objects better!
+             */
+            Item.prototype.getCornersXZBIG = function (xDim, yDim, position) {
+                position = position || this.position;
+                var halfSize = this.halfSize.clone();
+                let maxSize = Math.max(halfSize.x, halfSize.z);
+                let wallTol = 15;
+                var c1 = new THREE.Vector3(-(maxSize + wallTol), 0, -(maxSize + wallTol));
+                var c2 = new THREE.Vector3((maxSize + wallTol), 0, -(maxSize + wallTol));
+                var c3 = new THREE.Vector3((maxSize + wallTol), 0, (maxSize + wallTol));
+                var c4 = new THREE.Vector3(-(maxSize + wallTol), 0, (maxSize + wallTol));
+                var transform = new THREE.Matrix4();
+                //console.log(this.rotation.y);
+                transform.makeRotationY(this.rotation.y); //  + Math.PI/2)
+                c1.applyMatrix4(transform);
+                c2.applyMatrix4(transform);
+                c3.applyMatrix4(transform);
+                c4.applyMatrix4(transform);
+                c1.add(position);
+                c2.add(position);
+                c3.add(position);
+                c4.add(position);
+                //halfSize.applyMatrix4(transform);
+                //var min = position.clone().sub(halfSize);
+                //var max = position.clone().add(halfSize);
+                var corners = [{
+                        x: c1.x,
+                        y: c1.z
+                    },
+                    {
+                        x: c2.x,
+                        y: c2.z
+                    },
+                    {
+                        x: c3.x,
+                        y: c3.z
+                    },
+                    {
+                        x: c4.x,
+                        y: c4.z
+                    }
+                ];
+                return corners;
+            };
+
+            /**
+             * returns the 2d corners of the bounding polygon
+             *
+             * offset is Vector3 (used for getting corners of object at a new position)
+             *
+             * TODO: handle rotated objects better!
+             */
+            Item.prototype.getCornersXY = function (xDim, yDim, position) {
+                position = position || this.position;
+                var halfSize = this.halfSize.clone();
+                var c1 = new THREE.Vector3(-halfSize.x, -halfSize.y, 0);
+                var c2 = new THREE.Vector3(halfSize.x, -halfSize.y, 0);
+                var c3 = new THREE.Vector3(halfSize.x, halfSize.y, 0);
+                var c4 = new THREE.Vector3(-halfSize.x, halfSize.y, 0);
+                var transform = new THREE.Matrix4();
+                //console.log(this.rotation.y);
+                transform.makeRotationY(this.rotation.z); //  + Math.PI/2)
+                c1.applyMatrix4(transform);
+                c2.applyMatrix4(transform);
+                c3.applyMatrix4(transform);
+                c4.applyMatrix4(transform);
+                c1.add(position);
+                c2.add(position);
+                c3.add(position);
+                c4.add(position);
+                //halfSize.applyMatrix4(transform);
+                //var min = position.clone().sub(halfSize);
+                //var max = position.clone().add(halfSize);
+                var corners = [{
+                        x: c1.x,
+                        y: c1.y
+                    },
+                    {
+                        x: c2.x,
+                        y: c2.y
+                    },
+                    {
+                        x: c3.x,
+                        y: c3.y
+                    },
+                    {
+                        x: c4.x,
+                        y: c4.y
+                    }
+                ];
+                return corners;
+            };
+
+            /**
+             * returns the 2d corners of the bounding polygon
+             *
+             * offset is Vector3 (used for getting corners of object at a new position)
+             *
+             * TODO: handle rotated objects better!
+             */
+            Item.prototype.getCornersYZ = function (xDim, yDim, position) {
+                position = position || this.position;
+                var halfSize = this.halfSize.clone();
+                var c1 = new THREE.Vector3(0, -halfSize.y, -halfSize.z);
+                var c2 = new THREE.Vector3(0, halfSize.y, -halfSize.z);
+                var c3 = new THREE.Vector3(0, halfSize.y, halfSize.z);
+                var c4 = new THREE.Vector3(0, -halfSize.y, halfSize.z);
+                var transform = new THREE.Matrix4();
+                //console.log(this.rotation.y);
+                transform.makeRotationY(this.rotation.x); //  + Math.PI/2)
+                c1.applyMatrix4(transform);
+                c2.applyMatrix4(transform);
+                c3.applyMatrix4(transform);
+                c4.applyMatrix4(transform);
+                c1.add(position);
+                c2.add(position);
+                c3.add(position);
+                c4.add(position);
+                //halfSize.applyMatrix4(transform);
+                //var min = position.clone().sub(halfSize);
+                //var max = position.clone().add(halfSize);
+                var corners = [{
+                        x: c1.y,
+                        y: c1.z
+                    },
+                    {
+                        x: c2.y,
+                        y: c2.z
+                    },
+                    {
+                        x: c3.y,
+                        y: c3.z
+                    },
+                    {
+                        x: c4.y,
+                        y: c4.z
+                    }
+                ];
+                return corners;
+            };
+
+
             /** */
             Item.prototype.showError = function (vec3) {
                 vec3 = vec3 || this.position;
@@ -1075,6 +1284,8 @@ var __extends = (this && this.__extends) || function (d, b) {
                 this.front = front;
                 /** used for intersection testing... not convinced this belongs here */
                 this.plane = null;
+
+                this.box = null;
                 /** transform from world coords to wall planes (z=0) */
                 this.interiorTransform = new THREE.Matrix4();
                 /** transform from world coords to wall planes (z=0) */
@@ -1085,6 +1296,9 @@ var __extends = (this && this.__extends) || function (d, b) {
                 this.invExteriorTransform = new THREE.Matrix4();
                 /** */
                 this.redrawCallbacks = $.Callbacks();
+
+                this.edgeSelectedCallbacks = $.Callbacks();
+                this.edgeUnSelectedCallbacks = $.Callbacks();
                 /**
                  * this feels hacky, but need wall items
                  */
@@ -1118,6 +1332,15 @@ var __extends = (this && this.__extends) || function (d, b) {
                 } else {
                     this.wall.backEdge = this;
                 }
+            }
+
+            HalfEdge.prototype.drawOutline = function () {
+                this.box = new THREE.BoxHelper( this.plane, 0xffff00 );
+                this.edgeSelectedCallbacks.fire(this.box);
+            }
+
+            HalfEdge.prototype.removeOutline = function () {
+                this.edgeUnSelectedCallbacks.fire(this.box);
             }
             /**
              *
@@ -1481,14 +1704,29 @@ var Polygon = require('polygon')
                 this.edgePointer = null;
                 /** floor plane for intersection testing */
                 this.floorPlane = null;
+
+                this.box = null;
                 /** */
                 this.customTexture = false;
                 /** */
                 this.floorChangeCallbacks = $.Callbacks();
+
+                this.roomSelectedCallbacks = $.Callbacks();
+                this.roomUnSelectedCallbacks = $.Callbacks();
                 this.updateWalls();
                 this.updateInteriorCorners();
                 this.generatePlane();
             }
+
+            Room.prototype.drawOutline = function () {
+                this.box = new THREE.BoxHelper( this.floorPlane, 0xffff00 );
+                this.roomSelectedCallbacks.fire(this.box);
+            }
+
+            Room.prototype.removeOutline = function () {
+                this.roomUnSelectedCallbacks.fire(this.box);
+            }
+
             Room.prototype.getUuid = function () {
                 var cornerUuids = BP3D.Core.Utils.map(this.corners, function (c) {
                     return c.id;
@@ -2137,26 +2375,31 @@ var Polygon = require('polygon')
                     this.position.z = center.z;
                     this.position.y = 0.5 * (this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y);
                 }
-            };;
+            };
+
+            /** */
+            AnywhereItem.prototype.isElevationAdjustable = function () {
+                return true;
+            };
 
             AnywhereItem.prototype.moveToPosition = function (vec3, intersection) {
                 // keeps the position in the room
-                var center = this.model.floorplan.getCenter();
                 if (!this.isValidPosition(vec3)) {
                     this.showError(vec3);
                     return;
                 } else {
-                    vec3.y = center.y + 40;
+                    let yPos = this.getYPos(vec3);
+                    vec3.y = yPos;
+                    $("#item-elevation").val(this.cmToIn(this.getElevation()).toFixed(0));
                     this.hideError();
-                    // if (vec3.y < 0.5 * (this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y)) {
-                    //     vec3.y = this.position.y;
-                    // } else {
-                    //     console.log("UP");
-                    //     vec3.y = center.y + 40;
-                    // }
                     this.position.copy(vec3);
                 }
             };
+
+            AnywhereItem.prototype.cmToIn = function (cm) {
+                return cm / 2.54;
+            }
+
             /** */
             AnywhereItem.prototype.isValidPosition = function (vec3) {
                 var corners = this.getCorners('x', 'z', vec3);
@@ -2176,6 +2419,30 @@ var Polygon = require('polygon')
 
                 return true;
             };
+
+            AnywhereItem.prototype.getYPos = function (vec3) {
+                var corners = this.getCorners('x', 'z', vec3);
+                // check if we are outside all other objects
+
+                let objects = this.model.scene.getItems();
+                for (let i = 0; i < objects.length; i++) {
+                    if (objects[i] === this || objects[i].obstructCeilingMoves || objects[i].obstructOnFloorMoves) {
+                        continue;
+                    }
+                    if (
+                        BP3D.Core.Utils.polygonPolygonIntersect(corners, objects[i].getCorners('x', 'z'))) {
+                        // console.log('object not outside other objects');
+                        return objects[i].position.y + objects[i].halfSize.y + this.halfSize.y;
+                    }
+                    if (!BP3D.Core.Utils.polygonOutsidePolygon(corners, objects[i].getCorners('x', 'z'))) {
+                        return this.position.y;
+                    }
+                }
+
+
+                return 0.5 * (this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y);
+            }
+
             return AnywhereItem;
         })(Items.FloorItem);
         Items.AnywhereItem = AnywhereItem;
@@ -2348,6 +2615,7 @@ var Polygon = require('polygon')
                 } else {
                     this.backVisible = visible;
                 }
+                
                 this.visible = (this.frontVisible || this.backVisible);
             };
             /** */
@@ -2380,33 +2648,13 @@ var Polygon = require('polygon')
             };;
             /** */
             WallItem.prototype.moveToPosition = function (vec3, intersection) {
-                if (this.isValidPosition(vec3)) {
-                    this.changeWallEdge(intersection.object.edge);
-                    this.boundMove(vec3);
-                    this.position.copy(vec3);
-                    this.redrawWall();
-                } else {
-                    return;
-                }
+                this.changeWallEdge(intersection.object.edge);
+                this.boundMove(vec3);
+                this.position.copy(vec3);
+                this.redrawWall();
             };
 
-            WallItem.prototype.isValidPosition = function (vec3) {
-                var corners = this.getCorners('x', 'z', vec3);
-                if (this.obstructInWallMoves) {
-                    var objects = this.model.scene.getItems();
-                    for (let i = 0; i < objects.length; i++) {
-                        if (objects[i] === this || !objects[i].obstructInWallMoves) {
-                            continue;
-                        }
-                        if (!BP3D.Core.Utils.polygonOutsidePolygon(corners, objects[i].getCorners('x', 'z')) ||
-                            BP3D.Core.Utils.polygonPolygonIntersect(corners, objects[i].getCorners('x', 'z'))) {
-                            //console.log('object not outside other objects');
-                            return false;
-                        }
-                    }
-                }
-                return true;
-            };
+
 
             /** */
             WallItem.prototype.getWallOffset = function () {
@@ -2492,10 +2740,56 @@ var Polygon = require('polygon')
                 this.addToWall = true;
                 this.obstructInWallMoves = true;
             };
+
+            /** */
+            InWallItem.prototype.moveToPosition = function (vec3, intersection) {
+                if (this.isValidPosition(vec3)) {
+                    this.changeWallEdge(intersection.object.edge);
+                    this.boundMove(vec3);
+                    this.position.copy(vec3);
+                    this.redrawWall();
+                } else {
+                    return;
+                }
+            };
+
             /** */
             InWallItem.prototype.getWallOffset = function () {
                 // fudge factor so it saves to the right wall
                 return -this.currentWallEdge.offset + 0.5;
+            };
+
+            InWallItem.prototype.isValidPosition = function (vec3) {
+                var cornersXZ = this.getCornersXZBIG('x', 'z', vec3);
+
+                var objects = this.model.scene.getItems();
+                for (let i = 0; i < objects.length; i++) {
+                    if (objects[i] === this || !objects[i].obstructInWallMoves) {
+                        continue;
+                    }
+
+                    if (!BP3D.Core.Utils.polygonOutsidePolygon(cornersXZ, objects[i].getCornersXZ('x', 'z')) ||
+                        !BP3D.Core.Utils.polygonOutsidePolygon(objects[i].getCornersXZ('x', 'z'), cornersXZ) ||
+                        BP3D.Core.Utils.polygonPolygonIntersect(cornersXZ, objects[i].getCornersXZ('x', 'z'))) {
+                        // console.log('object not outside other objects  XY');
+                        return false;
+                    }
+
+
+                    // if (!BP3D.Core.Utils.polygonOutsidePolygon(cornersXZ, objects[i].getCorners('x', 'z')) ||
+                    //     BP3D.Core.Utils.polygonPolygonIntersect(cornersXZ, objects[i].getCorners('x', 'z'))) {
+                    //     console.log('object not outside other objects  XZ');
+                    //     return false;
+                    // }
+                    // if (!BP3D.Core.Utils.polygonOutsidePolygon(cornersYZ, objects[i].getCornersYZ('y', 'z')) ||
+                    //     BP3D.Core.Utils.polygonPolygonIntersect(cornersYZ, objects[i].getCornersYZ('y', 'z'))) {
+                    //     console.log('object not outside other objects YZ');
+                    //     return false;
+                    // }
+
+                }
+
+                return true;
             };
             return InWallItem;
         })(Items.WallItem);
@@ -2516,6 +2810,8 @@ var Polygon = require('polygon')
                 _super.call(this, model, metadata, geometry, material, position, rotation, scale);
                 this.boundToFloor = true;
                 this.obstructInWallMoves = true;
+                this.obstructFloorMoves = true;
+                this.addToWall = true;
             };
             return InWallFloorItem;
         })(Items.InWallItem);
@@ -2701,6 +2997,7 @@ var Polygon = require('polygon')
                     scope.add(item);
                     item.initObject();
                     scope.itemLoadedCallbacks.fire(item);
+                    THREE.Cache.add(fileName, {geometry: geometry, materials: materials});
                 };
 
                 function addToMaterials(materials, newmaterial) {
@@ -2714,6 +3011,7 @@ var Polygon = require('polygon')
                     return [materials, materials.length - 1];
                 }
                 var gltfCallback = function (gltfModel) {
+                    // console.log(gltfModel)
                     var newmaterials = [];
                     var newGeometry = new THREE.Geometry();
                     gltfModel.scene.traverse(function (child) {
@@ -2747,12 +3045,19 @@ var Polygon = require('polygon')
                             }
                         }
                     });
+                    
                     loaderCallback(newGeometry, newmaterials);
+                    
                     // loaderCallback(gltfModel.scene, newmaterials, true);
                 };
                 this.itemLoadingCallbacks.fire();
-                this.loader.load(fileName, gltfCallback, null, null // TODO_Ekki 
-                );
+                if (THREE.Cache.get(fileName) === undefined) {
+                    this.loader.load(fileName, gltfCallback, null, null // TODO_Ekki 
+                    );
+                } else {
+                    loaderCallback(THREE.Cache.get(fileName).geometry, THREE.Cache.get(fileName).materials);
+                }
+                // this.loader.load(fileName, gltfCallback, null, null);
             };
             return Scene;
         })();
@@ -3264,8 +3569,8 @@ var Polygon = require('polygon')
                 // console.log(this.mouseMoved);
                 // drawing
                 if (this.mode === Floorplanner_1.floorplannerModes.DRAW && (this.mouseMovedCount === 1 || this.mouseMovedCount === 0)) {
-                    console.log(this.targetX);
-                    console.log(this.targetY);
+                    // console.log(this.targetX);
+                    // console.log(this.targetY);
                     var corner = this.floorplan.newCorner(this.targetX, this.targetY);
                     if (this.lastNode != null) {
                         this.floorplan.newWall(this.lastNode, corner);
@@ -3370,6 +3675,7 @@ var Polygon = require('polygon')
             // invoked via callback when item is loaded
             function itemLoaded(item) {
                 if (!item.position_set) {
+                    // console.log(1)
                     scope.setSelectedObject(item);
                     switchState(states.DRAGGING_FREE);
                 }
@@ -3401,6 +3707,7 @@ var Polygon = require('polygon')
                 if (item === selectedObject) {
                     selectedObject.setUnselected();
                     selectedObject.mouseOff();
+                    // console.log(4)
                     scope.setSelectedObject(null);
                 }
             }
@@ -3493,6 +3800,7 @@ var Polygon = require('polygon')
                             if (rotateMouseOver) {
                                 switchState(states.ROTATING);
                             } else if (intersectedObject != null) {
+                                // console.log("calling set sel")
                                 scope.setSelectedObject(intersectedObject);
                                 if (!intersectedObject.fixed) {
                                     switchState(states.DRAGGING);
@@ -3501,6 +3809,7 @@ var Polygon = require('polygon')
                             break;
                         case states.UNSELECTED:
                             if (intersectedObject != null) {
+                                // console.log("calling set sel1bjhbjhbj")
                                 scope.setSelectedObject(intersectedObject);
                                 if (!intersectedObject.fixed) {
                                     switchState(states.DRAGGING);
@@ -3527,8 +3836,11 @@ var Polygon = require('polygon')
                     mouseDown = false;
                     switch (state) {
                         case states.DRAGGING:
-                            selectedObject.clickReleased();
+                            if (selectedObject != null) {
+                                selectedObject.clickReleased();
+                            }
                             switchState(states.SELECTED);
+
                             break;
                         case states.ROTATING:
                             if (mouseMovedCounter === 0 || mouseMovedCounter === 1) {
@@ -3569,6 +3881,7 @@ var Polygon = require('polygon')
             function onEntry(state) {
                 switch (state) {
                     case states.UNSELECTED:
+                        // console.log(3)
                         scope.setSelectedObject(null);
                         // eslint-disable-next-line no-fallthrough
                     case states.SELECTED:
@@ -3655,6 +3968,10 @@ var Polygon = require('polygon')
             }
             // returns the first intersection object
             this.itemIntersection = function (vec2, item) {
+                // console.log(item)
+                if (item == null) {
+                    return null;
+                }
                 var customIntersections = item.customIntersectionPlanes();
                 var intersections = null;
                 if (customIntersections && customIntersections.length > 0) {
@@ -3709,6 +4026,7 @@ var Polygon = require('polygon')
                 if (selectedObject != null) {
                     selectedObject.setUnselected();
                 }
+                // console.log(2)
                 if (object != null) {
                     selectedObject = object;
                     selectedObject.setSelected();
@@ -3763,8 +4081,18 @@ var Polygon = require('polygon')
             function init() {
                 scope.room.fireOnFloorChange(redraw);
                 floorPlane = buildFloor();
+                scope.room.roomSelectedCallbacks.add(drawOutline);
+                scope.room.roomUnSelectedCallbacks.add(removeOutline);
                 // roofs look weird, so commented out
                 //roofPlane = buildRoof();
+            }
+
+            function drawOutline(box) {
+                scene.add(box);
+            }
+
+            function removeOutline(box) {
+                scene.remove(box);
             }
 
             function redraw() {
@@ -3868,10 +4196,23 @@ var Polygon = require('polygon')
 
             function init() {
                 edge.redrawCallbacks.add(redraw);
+                edge.edgeSelectedCallbacks.add(drawOutline);
+                edge.edgeUnSelectedCallbacks.add(removeOutline);
                 controls.cameraMovedCallbacks.add(updateVisibility);
                 updateTexture();
                 updatePlanes();
                 addToScene();
+                
+            }
+
+            function drawOutline(box) {
+                scene.add(box);
+                updatePlanes();
+            }
+
+            function removeOutline(box) {
+                scene.remove(box);
+                updatePlanes();
             }
 
             function redraw() {
@@ -4811,6 +5152,7 @@ Contributors:
                     activeObject.rotation.y = selectedItem.rotation.y;
                     activeObject.position.x = selectedItem.position.x;
                     activeObject.position.z = selectedItem.position.z;
+                    activeObject.position.y = selectedItem.position.y - selectedItem.halfSize.y;
                 }
             };
 
@@ -4822,6 +5164,11 @@ Contributors:
 
             function rotateVector(item) {
                 var vec = new THREE.Vector3(0, 0, Math.max(item.halfSize.x, item.halfSize.z) + 1.4 + distance);
+                return vec;
+            }
+
+            function centreVector(item) {
+                var vec = new THREE.Vector3(0, 0, 0);
                 return vec;
             }
 
@@ -4849,7 +5196,9 @@ Contributors:
                 var material = new THREE.MeshBasicMaterial({
                     color: getColor()
                 });
+
                 var sphere = new THREE.Mesh(geometry, material);
+                sphere.position.copy(centreVector(item));
                 return sphere;
             }
 
@@ -4864,7 +5213,7 @@ Contributors:
                 object.rotation.y = item.rotation.y;
                 object.position.x = item.position.x;
                 object.position.z = item.position.z;
-                object.position.y = height;
+                object.position.y = item.position.y - item.halfSize.y;
                 return object;
             }
             init();
@@ -4966,6 +5315,7 @@ Contributors:
                     hasClicked = true;
                 });
                 //canvas = new ThreeCanvas(canvasElement, scope);
+
             }
 
             function spin() {

@@ -6,10 +6,11 @@ import {
   validateEmail,
   validatePassword,
   validateUsername,
-  parseJwt,
 } from "../../Utils/Utils";
 import axios from "axios";
-import { BASE_URL_AUTH, USERS, REGISTER, LOGIN } from "../../Constants.js";
+import { BASE_URL_AUTH, USERS, REGISTER } from "../../Constants.js";
+import SmallAlert from "./SmallAlert.jsx"
+import LargeAlert from "./LargeAlert.jsx"
 
 @inject("store")
 @observer
@@ -87,7 +88,7 @@ class SignupForm extends Component {
         password: this.state.signupPasswordValue,
       };
       try {
-        let res = await axios.post(BASE_URL_AUTH + USERS + REGISTER, user);
+        await axios.post(BASE_URL_AUTH + USERS + REGISTER, user);
         this.setState({
           isError: false,
           isEmailExists: false,
@@ -127,6 +128,7 @@ class SignupForm extends Component {
             this.handleSignupSubmit(e);
           }}
         >
+          {this.state.signupUsernameFormatError && <SmallAlert message="Cannot be blank" variant="danger" />}
           <input
             placeholder="Your Name"
             variant="secondary"
@@ -138,7 +140,7 @@ class SignupForm extends Component {
             }}
             className="login-form-input"
           />
-          {this.state.signupEmailFormatError && <div>invalid email</div>}
+          {this.state.signupEmailFormatError && <SmallAlert message="invalid Email" variant="danger" />}
           <input
             placeholder="example@xyz.com"
             variant="secondary"
@@ -151,7 +153,7 @@ class SignupForm extends Component {
             className="login-form-input"
           />
 
-          {this.state.signupPasswordFormatError && <div>min. 8 characters</div>}
+          {this.state.signupPasswordFormatError && <SmallAlert message="min. 8 characters" variant="danger" />}
           <input
             placeholder="password"
             variant="secondary"
@@ -164,14 +166,14 @@ class SignupForm extends Component {
             className="login-form-input"
           />
 
-          <Button type="submit" disabled={this.state.isDisabled}>
+          <Button variant="danger" className="login-submit-button" type="submit" disabled={this.state.isDisabled}>
             SignUp
           </Button>
         </form>
 
-        {this.state.isRegistered && <div>Successfully Registered</div>}
-        {this.state.isError && <div>Some ErrorOcurred</div>}
-        {this.state.isEmailExists && <div>Email already registered</div>}
+        {this.state.isRegistered && <LargeAlert message="Successfully Registered" variant="success" />}
+        {this.state.isError && <LargeAlert message="Some ErrorOcurred" variant="danger" />}
+        {this.state.isEmailExists && <LargeAlert message="Email already registered" variant="danger" />}
       </div>
     );
   }

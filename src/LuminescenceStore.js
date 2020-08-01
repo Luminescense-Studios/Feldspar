@@ -10,6 +10,8 @@ class LuminescenceStore {
   @observable accessToken = "";
   @observable refreshToken = "";
   @observable loginModal = false;
+  @observable logoutModal = false;
+  @observable addClickListener = false;
 
   //LoggedIn---------------------------------------------
   @action setLoggedIn = (login) => {
@@ -54,6 +56,24 @@ class LuminescenceStore {
 
   @computed get showLoginModal() {
     return this.loginModal
+  }
+
+  //LogoutModal---------------------------------------------
+  @action setLogoutModal = (show) => {
+    this.logoutModal = show
+  }
+
+  @computed get showLogoutModal() {
+    return this.logoutModal
+  }
+
+  //AddClickListener---------------------------------------------
+  @action setClickListener = (bool) => {
+    this.addClickListener = bool
+  }
+
+  @computed get getClickListener() {
+    return this.addClickListener
   }
 }
 

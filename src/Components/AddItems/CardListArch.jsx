@@ -1,25 +1,101 @@
 import React, { Component } from "react";
 import CardList from "./CardList.jsx";
-import {BASE_URL, MODELS, RETRIEVE, ARCH_CATEGORY} from "../../Constants.js";
+import {
+  BASE_URL,
+  MODELS,
+  RESOURCES,
+  GET_FREE_RESOURCES,
+  GET_RESOURCES,
+  FIND,
+  ARCH_CATEGORY,
+} from "../../Constants.js";
 import axios from "axios";
+import { inject, observer } from "mobx-react";
 
-export default class CardListArch extends Component {
+@inject("store")
+@observer
+class CardListArch extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      isLoggedIn: false,
       itemList: [],
     };
+    this.getUserList = this.getUserList.bind(this);
+    this.getFreeList = this.getFreeList.bind(this);
+    this.clearList = this.clearList.bind(this);
+  }
+
+  clearList() {
+    if (this.state.isLoggedIn === false) {
+      this.setState({
+        itemList: [],
+      });
+    }
+  }
+
+  getUserList() {
+    if (this.state.isLoggedIn) {
+      let furnitureCategory = { category: ARCH_CATEGORY };
+      let token = this.props.store.getAccessToken;
+      let config = {
+        headers: { Authorization: `Bearer ${token}` },
+      };
+
+      axios
+        .post(BASE_URL + RESOURCES + GET_RESOURCES, furnitureCategory, config)
+        .then((res) => {
+          let itemListTemp = res.data;
+          Promise.all(
+            itemListTemp.map(async (modelId) => {
+              let res = await axios.get(BASE_URL + MODELS + FIND + modelId);
+              let temp = [...this.state.itemList];
+              temp.push(res.data);
+              this.setState({ itemList: temp });
+              return res.data;
+            })
+          );
+        });
+    }
+  }
+
+  getFreeList() {
+    if (!this.state.isLoggedIn) {
+      let furnitureCategory = { category: ARCH_CATEGORY };
+
+      axios
+        .post(BASE_URL + RESOURCES + GET_FREE_RESOURCES, furnitureCategory)
+        .then((res) => {
+          let itemListTemp = res.data;
+          Promise.all(
+            itemListTemp.map(async (modelId) => {
+              let res = await axios.get(BASE_URL + MODELS + FIND + modelId);
+              let temp = [...this.state.itemList];
+              temp.push(res.data);
+              this.setState({ itemList: temp });
+              return res.data;
+            })
+          );
+        });
+    }
   }
 
   componentDidMount() {
-    let furnitureCategory = {category: ARCH_CATEGORY};
-
-    axios.post(BASE_URL + MODELS + RETRIEVE, furnitureCategory)
-      .then(res => {
-        this.setState({itemList: res.data});
-      })
+    this.getFreeList();
   }
 
+  componentDidUpdate(prevProps, prevState, snapShot) {
+    if (this.props.store.getLoggedIn && prevState.isLoggedIn === false) {
+      this.setState({ isLoggedIn: true });
+      this.clearList();
+      this.getUserList();
+    }
+    if (this.props.store.getLoggedIn === false && prevState.isLoggedIn) {
+      this.setState({ isLoggedIn: false });
+      this.clearList();
+      this.getFreeList();
+    }
+  }
 
   render() {
     return (
@@ -29,3 +105,5 @@ export default class CardListArch extends Component {
     );
   }
 }
+
+export default CardListArch;

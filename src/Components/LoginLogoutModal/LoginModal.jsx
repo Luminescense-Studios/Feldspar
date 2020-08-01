@@ -5,6 +5,8 @@ import Modal from "react-bootstrap/Modal";
 import { Tabs, Tab } from "react-bootstrap";
 import LoginForm from "./LoginForm.jsx";
 import SignupForm from "./SignupForm.jsx";
+import LoginModalHeading from "./LoginModalHeading.jsx"
+
 
 @inject("store")
 @observer
@@ -34,7 +36,7 @@ class LoginModal extends Component {
         id="loginModal"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Login/Signup</Modal.Title>
+          <Modal.Title><LoginModalHeading message="Login/Signup" /></Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="login-form-space">

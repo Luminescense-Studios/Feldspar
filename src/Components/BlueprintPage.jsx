@@ -25,423 +25,505 @@ import CardListRug from "./AddItems/CardListRug.jsx";
 import CardListMisc from "./AddItems/CardListMisc.jsx";
 import CardListKitchen from "./AddItems/CardListKitchen.jsx";
 import CardListArch from "./AddItems/CardListArch.jsx";
-import FloorTextureList from "./TextureList/FloorTextureList";
-import WallTextureList from "./TextureList/WallTextureList";
+import FloorTextureList from "./TextureList/FloorTextureList.jsx";
+import WallTextureList from "./TextureList/WallTextureList.jsx";
+import ContextMenu from "./ContextMenu.jsx";
 
+import { inject, observer } from "mobx-react";
+
+@inject("store")
+@observer
 class BlueprintPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
       key: "sofa",
       blueprint3d: {},
+      addClickListener: false,
+      currentStateName: "Design",
     };
     this.engine = this.engine.bind(this);
+    this.setDesignState = this.setDesignState.bind(this);
+    this.cameraButtons = this.cameraButtons.bind(this);
+    this.contextMenu = this.contextMenu.bind(this);
+    this.modalEffects = this.modalEffects.bind(this);
+    this.sideMenu = this.sideMenu.bind(this);
+    this.textureSelector = this.textureSelector.bind(this);
+    this.initItems = this.initItems.bind(this);
   }
 
-  engine() {
-    /*
-     * Camera Buttons
-     */
+  /*
+   * Camera Buttons
+   */
+  cameraButtons(blueprint3d) {
+    var orbitControls = blueprint3d.three.controls;
+    var three = blueprint3d.three;
 
-    var CameraButtons = function (blueprint3d) {
-      var orbitControls = blueprint3d.three.controls;
-      var three = blueprint3d.three;
-
-      var panSpeed = 30;
-      var directions = {
-        UP: 1,
-        DOWN: 2,
-        LEFT: 3,
-        RIGHT: 4,
-      };
-
-      function init() {
-        // Camera controls
-        $("#zoom-in").click(zoomIn);
-        $("#zoom-out").click(zoomOut);
-        $("#zoom-in").dblclick(preventDefault);
-        $("#zoom-out").dblclick(preventDefault);
-
-        $("#reset-view").click(three.centerCamera);
-
-        $("#move-left").click(function () {
-          pan(directions.LEFT);
-        });
-        $("#move-right").click(function () {
-          pan(directions.RIGHT);
-        });
-        $("#move-up").click(function () {
-          pan(directions.UP);
-        });
-        $("#move-down").click(function () {
-          pan(directions.DOWN);
-        });
-
-        $("#move-left").dblclick(preventDefault);
-        $("#move-right").dblclick(preventDefault);
-        $("#move-up").dblclick(preventDefault);
-        $("#move-down").dblclick(preventDefault);
-      }
-
-      function preventDefault(e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-
-      function pan(direction) {
-        switch (direction) {
-          case directions.UP:
-            orbitControls.panXY(0, panSpeed);
-            break;
-          case directions.DOWN:
-            orbitControls.panXY(0, -panSpeed);
-            break;
-          case directions.LEFT:
-            orbitControls.panXY(panSpeed, 0);
-            break;
-          case directions.RIGHT:
-            orbitControls.panXY(-panSpeed, 0);
-            break;
-          default:
-            break;
-        }
-      }
-
-      function zoomIn(e) {
-        e.preventDefault();
-        orbitControls.dollyIn(1.1);
-        orbitControls.update();
-      }
-
-      function zoomOut(e) {
-        // eslint-disable-next-line no-unused-expressions
-        e.preventDefault;
-        orbitControls.dollyOut(1.1);
-        orbitControls.update();
-      }
-
-      init();
+    var panSpeed = 30;
+    var directions = {
+      UP: 1,
+      DOWN: 2,
+      LEFT: 3,
+      RIGHT: 4,
     };
 
-    /*
-     * Context menu for selected item
-     */
+    function init() {
+      // Camera controls
+      $("#zoom-in").click(zoomIn);
+      $("#zoom-out").click(zoomOut);
+      $("#zoom-in").dblclick(preventDefault);
+      $("#zoom-out").dblclick(preventDefault);
 
-    var ContextMenu = function (blueprint3d) {
-      // var scope = this;
-      var selectedItem;
-      var three = blueprint3d.three;
+      $("#reset-view").click(three.centerCamera);
 
-      function init() {
-        $("#context-menu-delete").click(function (event) {
-          selectedItem.remove();
-        });
+      $("#move-left").click(function () {
+        pan(directions.LEFT);
+      });
+      $("#move-right").click(function () {
+        pan(directions.RIGHT);
+      });
+      $("#move-up").click(function () {
+        pan(directions.UP);
+      });
+      $("#move-down").click(function () {
+        pan(directions.DOWN);
+      });
 
-        three.itemSelectedCallbacks.add(itemSelected);
-        three.itemUnselectedCallbacks.add(itemUnselected);
+      $("#move-left").dblclick(preventDefault);
+      $("#move-right").dblclick(preventDefault);
+      $("#move-up").dblclick(preventDefault);
+      $("#move-down").dblclick(preventDefault);
+    }
 
-        initResize();
+    function preventDefault(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
 
-        $("#fixed").click(function () {
-          var checked = $(this).prop("checked");
-          selectedItem.setFixed(checked);
-        });
+    function pan(direction) {
+      switch (direction) {
+        case directions.UP:
+          orbitControls.panXY(0, panSpeed);
+          break;
+        case directions.DOWN:
+          orbitControls.panXY(0, -panSpeed);
+          break;
+        case directions.LEFT:
+          orbitControls.panXY(panSpeed, 0);
+          break;
+        case directions.RIGHT:
+          orbitControls.panXY(-panSpeed, 0);
+          break;
+        default:
+          break;
+      }
+    }
+
+    function zoomIn(e) {
+      e.preventDefault();
+      orbitControls.dollyIn(1.1);
+      orbitControls.update();
+    }
+
+    function zoomOut(e) {
+      // eslint-disable-next-line no-unused-expressions
+      e.preventDefault;
+      orbitControls.dollyOut(1.1);
+      orbitControls.update();
+    }
+
+    init();
+    this.setState({ blueprint3d: blueprint3d });
+  }
+
+  /*
+   * Context menu for selected item
+   */
+  contextMenu(blueprint3d) {
+    // var scope = this;
+    var selectedItem;
+    var three = blueprint3d.three;
+
+    function init() {
+      $("#context-menu-delete").click(function (event) {
+        selectedItem.remove();
+      });
+
+      three.itemSelectedCallbacks.add(itemSelected);
+      three.itemUnselectedCallbacks.add(itemUnselected);
+
+      initResize();
+
+      $("#fixed").click(function () {
+        var checked = $(this).prop("checked");
+        selectedItem.setFixed(checked);
+      });
+    }
+
+    function cmToIn(cm) {
+      return cm / 2.54;
+    }
+
+    function inToCm(inches) {
+      return inches * 2.54;
+    }
+
+    function itemSelected(item) {
+      selectedItem = item;
+
+      $("#context-menu-name").text(item.metadata.itemName);
+
+      $("#item-width").val(cmToIn(selectedItem.getWidth()).toFixed(0));
+      $("#item-height").val(cmToIn(selectedItem.getHeight()).toFixed(0));
+      $("#item-depth").val(cmToIn(selectedItem.getDepth()).toFixed(0));
+      $("#item-elevation").val(cmToIn(selectedItem.getElevation()).toFixed(0));
+
+      $("#context-menu").show();
+
+      if (selectedItem.isElevationAdjustable()) {
+        $("#item-elevation-div").show();
+      } else {
+        $("#item-elevation-div").hide();
       }
 
-      function cmToIn(cm) {
-        return cm / 2.54;
-      }
+      $("#fixed").prop("checked", item.fixed);
+    }
 
-      function inToCm(inches) {
-        return inches * 2.54;
-      }
+    function resize() {
+      selectedItem.resize(
+        inToCm($("#item-height").val()),
+        inToCm($("#item-width").val()),
+        inToCm($("#item-depth").val())
+      );
+    }
 
-      function itemSelected(item) {
-        selectedItem = item;
+    function elevate() {
+      selectedItem.elevate(inToCm($("#item-elevation").val()));
+    }
 
-        $("#context-menu-name").text(item.metadata.itemName);
+    function initResize() {
+      $("#item-height").change(resize);
+      $("#item-width").change(resize);
+      $("#item-depth").change(resize);
+      $("#item-elevation").change(elevate);
+    }
 
-        $("#item-width").val(cmToIn(selectedItem.getWidth()).toFixed(0));
-        $("#item-height").val(cmToIn(selectedItem.getHeight()).toFixed(0));
-        $("#item-depth").val(cmToIn(selectedItem.getDepth()).toFixed(0));
+    function itemUnselected() {
+      selectedItem = null;
+      $("#context-menu").hide();
+    }
 
-        $("#context-menu").show();
+    init();
+    this.setState({ blueprint3d: blueprint3d });
+  }
 
-        $("#fixed").prop("checked", item.fixed);
-      }
+  /*
+   * Loading modal for items
+   */
+  modalEffects(blueprint3d) {
+    // var scope = this;
+    var itemsLoading = 0;
 
-      function resize() {
-        selectedItem.resize(
-          inToCm($("#item-height").val()),
-          inToCm($("#item-width").val()),
-          inToCm($("#item-depth").val())
-        );
-      }
-
-      function initResize() {
-        $("#item-height").change(resize);
-        $("#item-width").change(resize);
-        $("#item-depth").change(resize);
-      }
-
-      function itemUnselected() {
-        selectedItem = null;
-        $("#context-menu").hide();
-      }
-
-      init();
+    this.setActiveItem = function (active) {
+      // eslint-disable-next-line no-undef
+      itemSelected = active;
+      update();
     };
 
-    /*
-     * Loading modal for items
-     */
+    function update() {
+      if (itemsLoading > 0) {
+        $("#loading-modal").show();
+      } else {
+        $("#loading-modal").hide();
+      }
+    }
 
-    var ModalEffects = function (blueprint3d) {
-      // var scope = this;
-      var itemsLoading = 0;
-
-      this.setActiveItem = function (active) {
-        // eslint-disable-next-line no-undef
-        itemSelected = active;
+    function init() {
+      blueprint3d.model.scene.itemLoadingCallbacks.add(function () {
+        itemsLoading += 1;
         update();
-      };
+      });
 
-      function update() {
-        if (itemsLoading > 0) {
-          $("#loading-modal").show();
-        } else {
-          $("#loading-modal").hide();
-        }
-      }
-
-      function init() {
-        blueprint3d.model.scene.itemLoadingCallbacks.add(function () {
-          itemsLoading += 1;
-          update();
-        });
-
-        blueprint3d.model.scene.itemLoadedCallbacks.add(function () {
-          itemsLoading -= 1;
-          update();
-        });
-
+      blueprint3d.model.scene.itemLoadedCallbacks.add(function () {
+        itemsLoading -= 1;
         update();
-      }
+      });
 
-      init();
+      update();
+    }
+
+    init();
+    this.setState({ blueprint3d: blueprint3d });
+  }
+
+  /*
+   * Side menu
+   */
+  sideMenu = function (blueprint3d, floorplanControls, modalEffects) {
+    // var modalEffects = modalEffectsArg;
+
+    var ACTIVE_CLASS = "active";
+
+    var tabs = {
+      FLOORPLAN: $("#floorplan_tab"),
+      SHOP: $("#items_tab"),
+      DESIGN: $("#design_tab"),
     };
 
-    /*
-     * Side menu
-     */
+    // var scope = this;
+    var stateChangeCallbacks = $.Callbacks();
 
-    var SideMenu = function (blueprint3d, floorplanControls, modalEffects) {
-      // var modalEffects = modalEffectsArg;
-
-      var ACTIVE_CLASS = "active";
-
-      var tabs = {
-        FLOORPLAN: $("#floorplan_tab"),
-        SHOP: $("#items_tab"),
-        DESIGN: $("#design_tab"),
-      };
-
-      var scope = this;
-      this.stateChangeCallbacks = $.Callbacks();
-
-      this.states = {
-        DEFAULT: {
-          div: $("#viewer"),
-          tab: tabs.DESIGN,
-        },
-        FLOORPLAN: {
-          div: $("#floorplanner"),
-          tab: tabs.FLOORPLAN,
-        },
-        SHOP: {
-          div: $("#add-items"),
-          tab: tabs.SHOP,
-        },
-      };
-
-      // sidebar state
-      var currentState = scope.states.FLOORPLAN;
-
-      function init() {
-        for (var tab in tabs) {
-          var elem = tabs[tab];
-          elem.click(tabClicked(elem));
-        }
-
-        $("#update-floorplan").click(floorplanUpdate);
-
-        initLeftMenu();
-
-        blueprint3d.three.updateWindowSize();
-        handleWindowResize();
-
-        initItems();
-
-        setCurrentState(scope.states.DEFAULT);
-      }
-
-      function floorplanUpdate() {
-        setCurrentState(scope.states.DEFAULT);
-      }
-
-      function tabClicked(tab) {
-        return function () {
-          // Stop three from spinning
-          initItems();
-          blueprint3d.three.stopSpin();
-
-          // Selected a new tab
-          for (var key in scope.states) {
-            var state = scope.states[key];
-            if (state.tab === tab) {
-              setCurrentState(state);
-              break;
-            }
-          }
-        };
-      }
-
-      function setCurrentState(newState) {
-        if (currentState === newState) {
-          return;
-        }
-
-        // show the right tab as active
-        if (currentState.tab !== newState.tab) {
-          if (currentState.tab != null) {
-            currentState.tab.removeClass(ACTIVE_CLASS);
-          }
-          if (newState.tab != null) {
-            newState.tab.addClass(ACTIVE_CLASS);
-          }
-        }
-
-        // set item unselected
-        blueprint3d.three.getController().setSelectedObject(null);
-
-        // show and hide the right divs
-        currentState.div.hide();
-        newState.div.show();
-
-        // custom actions
-        if (newState === scope.states.FLOORPLAN) {
-          floorplanControls.handleWindowResize();
-          floorplanControls.updateFloorplanView();
-        }
-
-        if (currentState === scope.states.FLOORPLAN) {
-          blueprint3d.model.floorplan.update();
-        }
-
-        if (newState === scope.states.DEFAULT) {
-          blueprint3d.three.updateWindowSize();
-        }
-
-        // set new state
-        handleWindowResize();
-        currentState = newState;
-
-        scope.stateChangeCallbacks.fire(newState);
-      }
-
-      function initLeftMenu() {
-        $(window).resize(handleWindowResize);
-        handleWindowResize();
-      }
-
-      function handleWindowResize() {
-        $(".sidebar").height(window.innerHeight);
-        $("#add-items").height(window.innerHeight);
-      }
-
-      // TODO: this doesn't really belong here
-      function initItems() {
-        $("#add-items").find(".add-item").off("click");
-        $("#add-items")
-          .find(".add-item")
-          .click(function (e) {
-            var modelUrl = $(this).attr("model-url");
-            var itemType = parseInt($(this).attr("model-type"));
-            var metadata = {
-              itemName: $(this).attr("model-name"),
-              resizable: true,
-              modelUrl: modelUrl,
-              itemType: itemType,
-            };
-
-            blueprint3d.model.scene.addItem(itemType, modelUrl, metadata);
-            setCurrentState(scope.states.DEFAULT);
-          });
-      }
-
-      init();
+    var states = {
+      DEFAULT: {
+        div: $("#viewer"),
+        tab: tabs.DESIGN,
+        name: "Design",
+      },
+      FLOORPLAN: {
+        div: $("#floorplanner"),
+        tab: tabs.FLOORPLAN,
+        name: "Floorplan",
+      },
+      SHOP: {
+        div: $("#add-items"),
+        tab: tabs.SHOP,
+        name: "Shop",
+      },
     };
 
-    /*
-     * Change floor and wall textures
-     */
+    // sidebar state
+    var currentState = states.FLOORPLAN;
 
-    var TextureSelector = function (blueprint3d, sideMenu) {
-      // var scope = this;
-      var three = blueprint3d.three;
-      // var isAdmin = isAdmin;
-
-      var currentTarget = null;
-
-      function initTextureSelectors() {
-        $(".texture-select-thumbnail").off("click");
-        $(".texture-select-thumbnail").click(function (e) {
-          var textureUrl = $(this).attr("texture-url");
-          var textureStretch = $(this).attr("texture-stretch") === "true";
-          var textureScale = parseInt($(this).attr("texture-scale"));
-          currentTarget.setTexture(textureUrl, textureStretch, textureScale);
-
-          e.preventDefault();
-        });
+    function init() {
+      for (var tab in tabs) {
+        var elem = tabs[tab];
+        elem.click(tabClicked(elem));
       }
 
-      function init() {
-        three.wallClicked.add(wallClicked);
-        three.wallClicked.add(initTextureSelectors);
-        three.floorClicked.add(floorClicked);
-        three.wallClicked.add(initTextureSelectors);
-        three.itemSelectedCallbacks.add(reset);
-        three.wallClicked.add(initTextureSelectors);
-        three.nothingClicked.add(reset);
-        three.wallClicked.add(initTextureSelectors);
-        sideMenu.stateChangeCallbacks.add(reset);
-        three.wallClicked.add(initTextureSelectors);
-        initTextureSelectors();
-      }
-
-      function wallClicked(halfEdge) {
-        currentTarget = halfEdge;
-        $("#floorTexturesDiv").hide();
-        $("#wallTextures").show();
-        initTextureSelectors();
-      }
-
-      function floorClicked(room) {
-        currentTarget = room;
-        $("#wallTextures").hide();
-        $("#floorTexturesDiv").show();
-        initTextureSelectors();
-      }
-
+      $("#update-floorplan").click(floorplanUpdate);
       function reset() {
         $("#wallTextures").hide();
         $("#floorTexturesDiv").hide();
-        initTextureSelectors();
       }
+      stateChangeCallbacks.add(reset);
 
-      init();
+      initLeftMenu();
+
+      blueprint3d.three.updateWindowSize();
+      handleWindowResize();
+
+      initItems();
+
+      setCurrentState(states.DEFAULT, true);
+    }
+
+    function floorplanUpdate() {
+      setCurrentState(states.DEFAULT);
+    }
+
+    function tabClicked(tab) {
+      return function () {
+        // Stop three from spinning
+        initItems();
+        blueprint3d.three.stopSpin();
+
+        // Selected a new tab
+        for (var key in states) {
+          var state = states[key];
+          if (state.tab === tab) {
+            setCurrentState(state);
+            break;
+          }
+        }
+      };
+    }
+
+    var getCurrentState = () => {
+      if (this.state.currentStateName === "Design") {
+        return states.DEFAULT;
+      }
+      if (this.state.currentStateName === "Floorplan") {
+        return states.FLOORPLAN;
+      }
+      if (this.state.currentStateName === "Shop") {
+        return states.SHOP;
+      }
+      return null;
     };
 
+    var updateState = (newState) => {
+      this.setState({ currentStateName: newState.name });
+    };
+
+    function setCurrentState(newState, firstTime) {
+      currentState = getCurrentState();
+      firstTime = firstTime || false;
+      if (!firstTime && currentState.name === newState.name) {
+        return;
+      }
+
+      // show the right tab as active
+      if (currentState.name !== newState.name) {
+        if (currentState.tab != null) {
+          currentState.tab.removeClass(ACTIVE_CLASS);
+        }
+        if (newState.tab != null) {
+          newState.tab.addClass(ACTIVE_CLASS);
+        }
+      }
+
+      if (currentState.name === newState.name) {
+        newState.tab.addClass(ACTIVE_CLASS);
+      }
+
+      // set item unselected
+      if (firstTime || newState.name !== "Design") {
+        blueprint3d.three.getController().setSelectedObject(null);
+      }
+
+      // show and hide the right divs
+      currentState.div.hide();
+      newState.div.show();
+
+      // custom actions
+      if (newState === states.FLOORPLAN) {
+        floorplanControls.handleWindowResize();
+        floorplanControls.updateFloorplanView();
+      }
+
+      if (currentState === states.FLOORPLAN) {
+        blueprint3d.model.floorplan.update();
+      }
+
+      if (newState === states.DEFAULT) {
+        blueprint3d.three.updateWindowSize();
+      }
+
+      // set new state
+      handleWindowResize();
+      currentState = newState;
+      updateState(newState);
+
+      stateChangeCallbacks.fire(newState);
+
+      //change mobx state-active-tab
+    }
+
+    function initLeftMenu() {
+      $(window).resize(handleWindowResize);
+      handleWindowResize();
+    }
+
+    function handleWindowResize() {
+      // $(".sidebar").height(window.innerHeight);
+      // $("#add-items").height(window.innerHeight);
+    }
+
+    var initItems = () => {
+      this.initItems(blueprint3d, setCurrentState);
+    };
+
+    init();
+    this.setState({ blueprint3d: blueprint3d });
+  };
+
+  initItems(blueprint3d, setCurrentState) {
+    $("#add-items").find(".add-item").off("click");
+    $("#add-items")
+      .find(".add-item")
+      .click(function (e) {
+        var modelUrl = $(this).attr("model-url");
+        var itemType = parseInt($(this).attr("model-type"));
+        var metadata = {
+          itemName: $(this).attr("model-name"),
+          resizable: true,
+          modelUrl: modelUrl,
+          itemType: itemType,
+        };
+
+        blueprint3d.model.scene.addItem(itemType, modelUrl, metadata);
+        setCurrentState(
+          {
+            div: $("#viewer"),
+            tab: $("#design_tab"),
+            name: "Design",
+          },
+          false
+        );
+      });
+  }
+
+  /*
+   * Change floor and wall textures
+   */
+  textureSelector(blueprint3d, sideMenu) {
+    // var scope = this;
+    var three = blueprint3d.three;
+    // var isAdmin = isAdmin;
+
+    var currentTarget = null;
+
+    function initTextureSelectors() {
+      $(".texture-select-thumbnail").off("click");
+      $(".texture-select-thumbnail").click(function (e) {
+        var textureUrl = $(this).attr("texture-url");
+        var textureStretch = $(this).attr("texture-stretch") === "true";
+        var textureScale = parseInt($(this).attr("texture-scale"));
+        currentTarget.setTexture(textureUrl, textureStretch, textureScale);
+
+        e.preventDefault();
+      });
+    }
+
+    function init() {
+      three.wallClicked.add(wallClicked);
+      three.wallClicked.add(initTextureSelectors);
+      three.floorClicked.add(floorClicked);
+      three.wallClicked.add(initTextureSelectors);
+      three.itemSelectedCallbacks.add(reset);
+      three.wallClicked.add(initTextureSelectors);
+      three.nothingClicked.add(reset);
+      three.wallClicked.add(initTextureSelectors);
+      // sideMenu.stateChangeCallbacks.add(reset);
+      three.wallClicked.add(initTextureSelectors);
+      initTextureSelectors();
+    }
+
+    function wallClicked(halfEdge) {
+      if(currentTarget!==undefined && currentTarget!==null){
+        currentTarget.removeOutline();
+      }
+      currentTarget = halfEdge;
+      currentTarget.drawOutline();
+      $("#floorTexturesDiv").hide();
+      $("#wallTextures").show();
+      initTextureSelectors();
+    }
+
+    function floorClicked(room) {
+      if(currentTarget!==undefined && currentTarget!==null){
+        currentTarget.removeOutline();
+      }
+      currentTarget = room;
+      currentTarget.drawOutline();
+      $("#wallTextures").hide();
+      $("#floorTexturesDiv").show();
+      initTextureSelectors();
+    }
+
+    function reset() {
+      if(currentTarget!==undefined && currentTarget!==null){
+        currentTarget.removeOutline();
+      }
+      $("#wallTextures").hide();
+      $("#floorTexturesDiv").hide();
+      initTextureSelectors();
+    }
+
+    init();
+  }
+
+  engine() {
     /*
      * Floorplanner controls
      */
@@ -556,22 +638,28 @@ class BlueprintPage extends Component {
      * Initialize!
      */
 
-    var blueprint3d = this.state.blueprint3d;
+    var modalEffects = this.modalEffects(this.state.blueprint3d);
+    var viewerFloorplanner = new ViewerFloorplanner(this.state.blueprint3d);
+    // eslint-disable-next-line no-unused-vars
+    var contextMenu = this.contextMenu(this.state.blueprint3d);
+    var sideMenu = this.sideMenu(
+      this.state.blueprint3d,
+      viewerFloorplanner,
+      modalEffects
+    );
 
-    var modalEffects = new ModalEffects(blueprint3d);
-    var viewerFloorplanner = new ViewerFloorplanner(blueprint3d);
     // eslint-disable-next-line no-unused-vars
-    var contextMenu = new ContextMenu(blueprint3d);
-    var sideMenu = new SideMenu(blueprint3d, viewerFloorplanner, modalEffects);
+    var textureSelector = this.textureSelector(
+      this.state.blueprint3d,
+      sideMenu
+    );
     // eslint-disable-next-line no-unused-vars
-    var textureSelector = new TextureSelector(blueprint3d, sideMenu);
-    // eslint-disable-next-line no-unused-vars
-    var cameraButtons = new CameraButtons(blueprint3d);
-    mainControls(blueprint3d);
+    var cameraButtons = this.cameraButtons(this.state.blueprint3d);
+    mainControls(this.state.blueprint3d);
 
     // This serialization format needs work
     // Load a simple rectangle room
-    blueprint3d.model.loadSerialized(INIT_STRUCTURE);
+    this.state.blueprint3d.model.loadSerialized(INIT_STRUCTURE);
   }
 
   componentDidMount() {
@@ -583,12 +671,54 @@ class BlueprintPage extends Component {
       widget: false,
     };
     this.setState({ blueprint3d: new BP3D.Blueprint3d(opts) }, () => {
-      console.log(this.state.blueprint3d);
       this.engine();
     });
   }
 
+  setDesignState(newState, firstTime) {
+    firstTime = firstTime || false;
+    var ACTIVE_CLASS = "active";
+
+    $("#items_tab").removeClass(ACTIVE_CLASS);
+    $("#design_tab").addClass(ACTIVE_CLASS);
+
+    // show and hide the right divs
+    $("#add-items").hide();
+    $("#viewer").show();
+
+    this.state.blueprint3d.three.updateWindowSize();
+
+    // set new state
+    function handleWindowResize() {
+      // $(".sidebar").height(window.innerHeight);
+      // $("#add-items").height(window.innerHeight);
+    }
+    handleWindowResize();
+
+    function reset() {
+      $("#wallTextures").hide();
+      $("#floorTexturesDiv").hide();
+    }
+
+    reset();
+    this.setState({ currentStateName: "Design" });
+
+    //change mobx state-active-tab
+  }
+
+  componentDidUpdate(prevProps, prevState, snapShot) {
+    if (this.props.addClickListener) {
+      // this.setState({ addClickListener: true });
+      this.props.store.setClickListener(false);
+      this.initItems(this.state.blueprint3d, this.setDesignState);
+    }
+    if (this.props.addClickListener === false && prevProps.addClickListener) {
+      this.setState({ addClickListener: false });
+    }
+  }
+
   render() {
+    const { store } = this.props;
     return (
       <div className="horizontal-container">
         {/* Left Column */}
@@ -625,75 +755,16 @@ class BlueprintPage extends Component {
 
           {/* Context Menu */}
           <div id="context-menu">
-            <span id="context-menu-name" className="lead"></span>
-            <br />
-            <br />
-            <Button variant="danger" size="sm" block id="context-menu-delete">
-              <span className="icon-centre">
-                <FaTrashAlt />
-              </span>
-              <span className="text-centre">Delete Item</span>
-            </Button>
-            <br />
-
-            <div className="panel panel-default">
-              <div className="panel-heading">Adjust Size</div>
-              <div className="panel-body" style={{ color: "#333333" }}>
-                <div className="form form-horizontal">
-                  <div className="form-group">
-                    <label className="col-sm-5 control-label">Width</label>
-                    <div className="col-sm-6">
-                      <input
-                        type="number"
-                        className="form-control"
-                        id="item-width"
-                      ></input>
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label className="col-sm-5 control-label">Depth</label>
-                    <div className="col-sm-6">
-                      <input
-                        type="number"
-                        className="form-control"
-                        id="item-depth"
-                      ></input>
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label className="col-sm-5 control-label">Height</label>
-                    <div className="col-sm-6">
-                      <input
-                        type="number"
-                        className="form-control"
-                        id="item-height"
-                      ></input>
-                    </div>
-                  </div>
-                </div>
-                <small>
-                  <span className="text-muted">Measurements in inches.</span>
-                </small>
-              </div>
-            </div>
-            <label>
-              <input type="checkbox" id="fixed" /> Lock in place
-            </label>
-            <br />
-            <br />
+            <ContextMenu />
           </div>
-
           {/* Floor Textures */}
-          <div
-            id="floorTexturesDiv"
-            style={{ display: "none", padding: "0 20px" }}
-          >
-            <FloorTextureList />
+          <div id="floorTexturesDiv" style={{ display: "none" }}>
+            <FloorTextureList loggedIn={store.getLoggedIn} />
           </div>
 
           {/* Wall Textures */}
-          <div id="wallTextures" style={{ display: "none", padding: "0 20px" }}>
-            <WallTextureList />
+          <div id="wallTextures" style={{ display: "none" }}>
+            <WallTextureList loggedIn={store.getLoggedIn} />
           </div>
         </div>
         {/* End Left Column */}
@@ -735,28 +806,63 @@ class BlueprintPage extends Component {
             </div>
 
             <div id="camera-controls">
-              <Button size="sm" id="zoom-out" className={"basic-button"}>
+              <Button
+                variant="danger"
+                size="sm"
+                id="zoom-out"
+                className={"basic-button"}
+              >
                 <FaSearchMinus />
               </Button>
-              <Button size="sm" id="reset-view" className={"basic-button"}>
+              <Button
+                variant="danger"
+                size="sm"
+                id="reset-view"
+                className={"basic-button"}
+              >
                 <FaHome />
               </Button>
-              <Button size="sm" id="zoom-in" className={"basic-button"}>
+              <Button
+                variant="danger"
+                size="sm"
+                id="zoom-in"
+                className={"basic-button"}
+              >
                 <FaSearchPlus />
               </Button>
 
-              <Button size="sm" id="move-left" className={"basic-button"}>
+              <Button
+                variant="danger"
+                size="sm"
+                id="move-left"
+                className={"basic-button"}
+              >
                 <FaArrowLeft />
               </Button>
               <div className={"vertical-controls-container"}>
-                <Button size="sm" id="move-up" className={"basic-button"}>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  id="move-up"
+                  className={"basic-button"}
+                >
                   <FaArrowUp />
                 </Button>
-                <Button size="sm" id="move-down" className={"basic-button"}>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  id="move-down"
+                  className={"basic-button"}
+                >
                   <FaArrowDown />
                 </Button>
               </div>
-              <Button size="sm" id="move-right" className={"basic-button"}>
+              <Button
+                variant="danger"
+                size="sm"
+                id="move-right"
+                className={"basic-button"}
+              >
                 <FaArrowRight />
               </Button>
             </div>
@@ -805,7 +911,7 @@ class BlueprintPage extends Component {
               </Button>
 
               <Button
-                variant="primary"
+                variant="danger"
                 size="sm"
                 className="icon-text-button"
                 id="update-floorplan"
@@ -823,6 +929,8 @@ class BlueprintPage extends Component {
           {/* Add Items */}
           <div id="add-items">
             <Tabs
+              variant="pills"
+              
               id="controlled-tab-example"
               activeKey={this.state.key}
               onSelect={(k) => {
@@ -830,25 +938,25 @@ class BlueprintPage extends Component {
               }}
             >
               <Tab eventKey="sofa" title="Sofas">
-                <CardListSofa />
+                <CardListSofa loggedIn={store.getLoggedIn} />
               </Tab>
               <Tab eventKey="chair" title="Chairs">
-                <CardListChair />
+                <CardListChair loggedIn={store.getLoggedIn} />
               </Tab>
               <Tab eventKey="bed" title="Beds">
-                <CardListBed />
+                <CardListBed loggedIn={store.getLoggedIn} />
               </Tab>
               <Tab eventKey="rug" title="Rugs">
-                <CardListRug />
+                <CardListRug loggedIn={store.getLoggedIn} />
               </Tab>
               <Tab eventKey="misc" title="Misc">
-                <CardListMisc />
+                <CardListMisc loggedIn={store.getLoggedIn} />
               </Tab>
               <Tab eventKey="kitchen" title="Kitchen">
-                <CardListKitchen />
+                <CardListKitchen loggedIn={store.getLoggedIn} />
               </Tab>
               <Tab eventKey="arch" title="Architectural">
-                <CardListArch />
+                <CardListArch loggedIn={store.getLoggedIn} />
               </Tab>
             </Tabs>
           </div>

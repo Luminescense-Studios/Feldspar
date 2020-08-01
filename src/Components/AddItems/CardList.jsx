@@ -1,35 +1,45 @@
 import "../../App.css";
 import React, { Component } from "react";
-import { Card, Button } from "react-bootstrap";
+import { Card } from "react-bootstrap";
 import { BASE_URL, ASSETS } from "../../Constants.js";
+import { inject, observer } from "mobx-react";
 
-export default class CardList extends Component {
+@inject("store")
+@observer
+class CardList extends Component {
+  componentDidUpdate(prevProps, prevState, snapShot) {
+    if (this.props.itemList !== prevProps.itemList) {
+      this.props.store.setClickListener(true);
+    }
+  }
   render() {
     return (
       <div>
         {this.props.itemList.map((item, iterator) => (
-          <Card key={iterator} className="item-card">
+          <Card
+            model-url={BASE_URL + ASSETS + item.url}
+            model-type={item.type}
+            model-name={item.name}
+            onClick={() => {
+              this.props.store.setClickListener(true);
+            }}
+            key={iterator}
+            className="bg-dark text-white item-card add-item"
+          >
             <Card.Img
-              variant="top"
               src={BASE_URL + ASSETS + item.imgUrl}
               className="item-card-img"
             />
-            <Card.Body className="item-card-body">
-              <Card.Title className="item-card-title">{item.name}</Card.Title>
-
-              <Button
-                variant="primary"
-                className="add-item"
-                model-url={BASE_URL + ASSETS + item.url}
-                model-type={item.type}
-                model-name={item.name}
-              >
-                Add Item
-              </Button>
-            </Card.Body>
+            <Card.ImgOverlay className="item-card-body">
+              <Card.Body className="item-card-title-outer">
+                <div className="item-card-title">{item.name}</div>
+              </Card.Body>
+            </Card.ImgOverlay>
           </Card>
         ))}
       </div>
     );
   }
 }
+
+export default CardList;
