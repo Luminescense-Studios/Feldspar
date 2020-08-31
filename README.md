@@ -1,5 +1,7 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+This is a project for creating simple interior designs for homes with very little experience and designers can easily share a link with their clients.
+
 DEMO: http://182.224.182.120:3000
 
 The backend code is private for security reasons, which will be made public after the issues are resolved.
