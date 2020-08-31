@@ -1,12 +1,13 @@
-import "../../App.css";
+import "../../../App.css";
 import React, { Component } from "react";
 import { inject, observer } from "mobx-react";
 import Button from "react-bootstrap/Button";
-import { validateEmail, parseJwt } from "../../Utils/Utils";
+import { FaEnvelope, FaKey } from "react-icons/fa";
+import { validateEmail, parseJwt } from "../../../Utils/Utils";
 import axios from "axios";
-import { BASE_URL_AUTH, USERS, LOGIN } from "../../Constants.js";
-import SmallAlert from "./SmallAlert.jsx";
-import LargeAlert from "./LargeAlert.jsx";
+import { BASE_URL_AUTH, USERS, LOGIN } from "../../../Constants.js";
+import SmallAlert from "../../SmallAlert.jsx";
+import LargeAlert from "../../LargeAlert.jsx";
 
 @inject("store")
 @observer
@@ -66,7 +67,7 @@ class LoginForm extends Component {
         });
 
         const loggedInUser = parseJwt(res.data.accessToken);
-        
+
         this.props.store.setUsername(loggedInUser.name);
         this.props.store.setAccessToken(res.data.accessToken);
         this.props.store.setRefreshToken(res.data.refreshToken);
@@ -114,31 +115,46 @@ class LoginForm extends Component {
           {this.state.loginEmailFormatError && (
             <SmallAlert message="invalid Email" variant="danger" />
           )}
-          <input
-            placeholder="example@xyz.com"
-            variant="secondary"
-            size="sm"
-            type="email"
-            value={this.state.loginEmailValue}
-            onChange={(e) => {
-              this.handleLoginEmailChange(e);
-            }}
-            className="login-form-input"
-          />
+          <div className="login-form-input-space">
+            <div className="login-form-icon">
+              <FaEnvelope />
+            </div>
 
-          <input
-            placeholder="password"
-            variant="secondary"
-            size="sm"
-            type="password"
-            value={this.state.loginPasswordValue}
-            onChange={(e) => {
-              this.handleLoginPasswordChange(e);
-            }}
-            className="login-form-input"
-          />
+            <input
+              placeholder="Email"
+              variant="secondary"
+              type="email"
+              value={this.state.loginEmailValue}
+              onChange={(e) => {
+                this.handleLoginEmailChange(e);
+              }}
+              className="login-form-input"
+            />
+          </div>
 
-          <Button variant="danger" className="login-submit-button" disabled={this.state.isDisabled} type="submit">
+          <div className="login-form-input-space">
+            <div className="login-form-icon">
+              <FaKey />
+            </div>
+            <input
+              placeholder="Password"
+              variant="secondary"
+              size="sm"
+              type="password"
+              value={this.state.loginPasswordValue}
+              onChange={(e) => {
+                this.handleLoginPasswordChange(e);
+              }}
+              className="login-form-input"
+            />
+          </div>
+
+          <Button
+            variant="danger"
+            className="login-submit-button"
+            disabled={this.state.isDisabled}
+            type="submit"
+          >
             Login
           </Button>
         </form>

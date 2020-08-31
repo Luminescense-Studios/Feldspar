@@ -1,5 +1,5 @@
 /* If the screen size is 768px wide or less, hide the element */
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: 200px) {
   div.horizontal-container {
     display: none;
   }
@@ -17,6 +17,7 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+  overflow-y: hidden;
   height: 100%;
   font-family: "Poppins", sans-serif;
 }
@@ -73,16 +74,17 @@ h2 {
  */
 
 .sidebar {
-  z-index: 3;
-  border-right: 1px solid #eee;
-  width: 25%;
-  min-width: 300px;
+  z-index: 1;
+  width: 50px;
+  min-width: 50px;
   display: flex;
   flex-direction: column;
   color: #5a6268;
   background-color: #ffffff;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 1.75rem;
+  justify-content: space-between;
+  padding-bottom: 4rem;
 
   overflow-y: scroll;
   -ms-overflow-style: none; /* Internet Explorer 10+ */
@@ -97,32 +99,27 @@ h2 {
   flex-direction: column;
 }
 
-.justify-between {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  padding: 5px 20px 3px 20px;
-}
-
 .nav-sidebar {
   width: 100%;
+  z-index: 1;
 }
 
-.nav-sidebar > li {
-  margin: 4px 16px;
+.nav-sidebar > li > div {
+  position: relative;
+  display: inline-block;
+  padding: 0.3rem 0 0.5rem 0.6rem;
+  width: 100%;
+  z-index: 1;
 }
 .nav-sidebar > li > div:hover {
   cursor: pointer;
-  background-color: #ffffff;
-  color: #5a6268;
-  border-color: #5a6268;
-  border-width: 2px;
-  border-style: solid;
+  background-color: #aaaaaa;
+  color: #fff;
 }
 
 .nav-sidebar > .active > div {
-  border-width: 2px;
-  border-style: dashed;
+  background-color: #dc3545;
+  color: #ffffff;
 }
 
 hr {
@@ -153,6 +150,7 @@ hr {
   font-weight: normal;
   font-size: 16px;
   color: #5a6268;
+  background-color: #ffffff;
 }
 ::-webkit-scrollbar {
   width: 0px;
@@ -256,6 +254,23 @@ small {
   width: 100%;
 }
 
+#texture-context-container {
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  z-index: 2;
+  width: max-content;
+  max-width: 240px;
+  background-color: #ffffff;
+
+  overflow-y: scroll;
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
+}
+::-webkit-scrollbar {
+  width: 0px;
+}
+
 #floorTexturesDiv {
   margin: 0;
   padding-bottom: 50px;
@@ -273,7 +288,7 @@ small {
 .texture-panel {
   margin-bottom: 5px;
   font-weight: 600;
-  padding: 5px 30px;
+  padding: 5px 20px;
   color: #5a6268;
 }
 
@@ -283,7 +298,7 @@ small {
 
 .texture-select-thumbnail {
   display: inline-block;
-  width: 50%;
+  width: 5rem;
   min-width: 100px;
   margin: auto;
 }
@@ -294,7 +309,7 @@ small {
 
 .thumbnail {
   width: 100%;
-  height: 7rem;
+  height: 5rem;
   border-radius: 10px;
   padding: 2px;
   object-fit: cover;
@@ -322,6 +337,7 @@ small {
 }
 
 .right-container {
+  z-index: 1;
   flex: 1 1 auto;
 }
 
@@ -331,14 +347,6 @@ small {
   right: 0;
   padding: 0 20px;
   text-align: right;
-}
-
-#main-controls {
-  position: absolute;
-  top: 40px;
-  right: 20px;
-  margin: 50px 0;
-  padding: 0;
 }
 
 .basic-button {
@@ -470,6 +478,10 @@ label {
   margin: auto 0 auto auto;
 }
 
+.active-title {
+  border-style: solid;
+}
+
 .item-card-title:hover {
   border-style: solid;
 }
@@ -482,7 +494,7 @@ label {
  * Top Bar
  */
 .top-bar {
-  z-index: 4;
+  z-index: 1;
   display: flex;
   flex-direction: row;
   margin: 0;
@@ -503,6 +515,12 @@ label {
   border-width: 2px;
   border-style: solid;
   padding: 5px 10px;
+}
+
+.top-bar-logo {
+  width: 3rem;
+  height: 100%;
+  padding: 0.4rem;
 }
 
 .top-bar-login-button {
@@ -531,6 +549,28 @@ label {
   color: #5a6268;
 }
 
+.custom-light-button {
+  background-color: #fff;
+  font-size: 1.5rem;
+
+  border-style: none;
+  outline: none;
+  box-shadow: none;
+}
+
+.custom-light-button:hover {
+  border-style: none;
+  outline: none;
+  box-shadow: none;
+}
+
+.custom-light-button:focus,
+.custom-light-button:focus {
+  border-style: none;
+  outline: none;
+  box-shadow: none;
+}
+
 .login-modal {
   margin: auto;
   display: flex;
@@ -548,12 +588,9 @@ label {
   display: flex;
   flex-direction: column;
   margin: 50px auto;
-  border-color: #5a6268;
-  border-width: 2px;
-  border-style: dashed;
-  padding: 30px 20px;
+  padding: 10px 10px;
   color: #5a6268;
-  width: 50%;
+  width: 100%;
   justify-content: space-around;
 }
 
@@ -561,6 +598,60 @@ label {
   width: 40%;
   text-align: center;
   margin: auto;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  margin: 20px auto;
+  width: 100%;
+}
+
+.login-form-input-space {
+  display: flex;
+  flex-direction: row;
+  margin: auto 5px;
+  width: 100%;
+}
+
+.login-form-icon {
+  display: flex;
+  padding: 0.55rem 0.7rem;
+  margin: auto;
+  border-width: 1px;
+  border-style: solid;
+  border-color: -internal-light-dark(rgb(118, 118, 118), rgb(195, 195, 195));
+}
+
+.login-form-input {
+  margin: 5px 10px 5px 1px;
+  padding: 4px;
+  flex: 1 1 auto;
+}
+
+.modal-plain-text {
+  margin: 5px;
+  font-weight: 600;
+}
+
+.small-alert {
+  font-size: 0.7rem;
+  margin: 5px 5px 0 5px;
+  padding: 2px;
+  padding-left: 0.4rem;
+}
+
+.large-alert {
+  font-size: 0.9rem;
+  margin: 5px 5px 0 5px;
+  padding: 2px;
+  padding-left: 0.4rem;
+}
+
+.login-submit-button {
+  margin: 5px;
+  border-radius: 0%;
+  font-weight: 600;
 }
 
 .nav-pills .nav-link {
@@ -579,30 +670,53 @@ label {
   border-radius: 0;
 }
 
-.login-form {
+.save-file-space {
   display: flex;
-  flex-direction: column;
-  margin: auto;
+  flex-direction: row;
+}
+
+.save-file-text {
+  margin: auto 5px;
+}
+
+.save-file-input {
+  flex: 1 1 auto;
+  margin: auto 5px;
+}
+
+.save-file-container {
   width: 100%;
 }
 
-.login-form-input {
+.save-file-list-block {
+  display: inline-block;
+}
+
+.save-file-list-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  min-width: 200px;
+  max-width: 400px;
   margin: 5px;
-  padding: 4px;
+  padding: 0.4rem;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #fff;
 }
 
-.small-alert {
-  font-size: 0.7rem;
-  margin: 5px 5px 0 5px;
-  padding: 2px;
+.save-file-list-item:hover {
+  border-width: 1px;
+  border-style: solid;
+  border-color: #5a6268;
+  cursor: pointer;
 }
 
-.large-alert {
-  font-size: 0.9rem;
-  margin: 5px 5px 0 5px;
-  padding: 2px;
+.save-file-name {
+  margin: auto 1px;
 }
 
-.login-submit-button {
-  margin: 5px;
+.info-text {
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
 }

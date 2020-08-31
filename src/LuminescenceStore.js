@@ -11,7 +11,11 @@ class LuminescenceStore {
   @observable refreshToken = "";
   @observable loginModal = false;
   @observable logoutModal = false;
+  @observable infoModal = false;
   @observable addClickListener = false;
+  @observable saveFileModal = false;
+  @observable loadFileModal = false;
+
 
   //LoggedIn---------------------------------------------
   @action setLoggedIn = (login) => {
@@ -67,6 +71,15 @@ class LuminescenceStore {
     return this.logoutModal
   }
 
+  //InfoModal---------------------------------------------
+  @action setInfoModal = (show) => {
+    this.infoModal = show
+  }
+
+  @computed get showInfoModal() {
+    return this.infoModal
+  }
+
   //AddClickListener---------------------------------------------
   @action setClickListener = (bool) => {
     this.addClickListener = bool
@@ -75,6 +88,25 @@ class LuminescenceStore {
   @computed get getClickListener() {
     return this.addClickListener
   }
+
+  //Save File Modal---------------------------------------------
+  @action setSaveFileModal = (bool) => {
+    this.saveFileModal = bool
+  }
+
+  @computed get showSaveFileModal() {
+    return this.saveFileModal
+  }
+
+  //Load File Modal---------------------------------------------
+  @action setLoadFileModal = (bool) => {
+    this.loadFileModal = bool
+  }
+
+  @computed get showLoadFileModal() {
+    return this.loadFileModal
+  }
+
 }
 
 var store = new LuminescenceStore();

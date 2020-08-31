@@ -11,8 +11,6 @@ import {
   TABLE_CATEGORY,
   CABINET_CATEGORY,
   CURTAIN_CATEGORY,
-  LIGHT_CATEGORY,
-  BATH_CATEGORY,
 } from "../../Constants.js";
 import axios from "axios";
 import { inject, observer } from "mobx-react";
@@ -45,8 +43,6 @@ class CardListMisc extends Component {
       let tableCategory = { category: TABLE_CATEGORY };
       let cabinetCategory = { category: CABINET_CATEGORY };
       let curtainCategory = { category: CURTAIN_CATEGORY };
-      let lightCategory = { category: LIGHT_CATEGORY };
-      let bathCategory = { category: BATH_CATEGORY };
 
       let token = this.props.store.getAccessToken;
       let config = {
@@ -84,7 +80,7 @@ class CardListMisc extends Component {
         });
 
       axios
-        .post(BASE_URL + RESOURCES + GET_FREE_RESOURCES, cabinetCategory)
+        .post(BASE_URL + RESOURCES + GET_RESOURCES, cabinetCategory, config)
         .then((res) => {
           let itemListTemp = res.data;
           Promise.all(
@@ -99,37 +95,7 @@ class CardListMisc extends Component {
         });
 
       axios
-        .post(BASE_URL + RESOURCES + GET_FREE_RESOURCES, curtainCategory)
-        .then((res) => {
-          let itemListTemp = res.data;
-          Promise.all(
-            itemListTemp.map(async (modelId) => {
-              let res = await axios.get(BASE_URL + MODELS + FIND + modelId);
-              let temp = [...this.state.itemList];
-              temp.push(res.data);
-              this.setState({ itemList: temp });
-              return res.data;
-            })
-          );
-        });
-
-      axios
-        .post(BASE_URL + RESOURCES + GET_FREE_RESOURCES, lightCategory)
-        .then((res) => {
-          let itemListTemp = res.data;
-          Promise.all(
-            itemListTemp.map(async (modelId) => {
-              let res = await axios.get(BASE_URL + MODELS + FIND + modelId);
-              let temp = [...this.state.itemList];
-              temp.push(res.data);
-              this.setState({ itemList: temp });
-              return res.data;
-            })
-          );
-        });
-
-      axios
-        .post(BASE_URL + RESOURCES + GET_FREE_RESOURCES, bathCategory)
+        .post(BASE_URL + RESOURCES + GET_RESOURCES, curtainCategory, config)
         .then((res) => {
           let itemListTemp = res.data;
           Promise.all(
@@ -151,8 +117,6 @@ class CardListMisc extends Component {
       let tableCategory = { category: TABLE_CATEGORY };
       let cabinetCategory = { category: CABINET_CATEGORY };
       let curtainCategory = { category: CURTAIN_CATEGORY };
-      let lightCategory = { category: LIGHT_CATEGORY };
-      let bathCategory = { category: BATH_CATEGORY };
 
       axios
         .post(BASE_URL + RESOURCES + GET_FREE_RESOURCES, furnitureCategory)
@@ -201,36 +165,6 @@ class CardListMisc extends Component {
 
       axios
         .post(BASE_URL + RESOURCES + GET_FREE_RESOURCES, curtainCategory)
-        .then((res) => {
-          let itemListTemp = res.data;
-          Promise.all(
-            itemListTemp.map(async (modelId) => {
-              let res = await axios.get(BASE_URL + MODELS + FIND + modelId);
-              let temp = [...this.state.itemList];
-              temp.push(res.data);
-              this.setState({ itemList: temp });
-              return res.data;
-            })
-          );
-        });
-
-      axios
-        .post(BASE_URL + RESOURCES + GET_FREE_RESOURCES, lightCategory)
-        .then((res) => {
-          let itemListTemp = res.data;
-          Promise.all(
-            itemListTemp.map(async (modelId) => {
-              let res = await axios.get(BASE_URL + MODELS + FIND + modelId);
-              let temp = [...this.state.itemList];
-              temp.push(res.data);
-              this.setState({ itemList: temp });
-              return res.data;
-            })
-          );
-        });
-
-      axios
-        .post(BASE_URL + RESOURCES + GET_FREE_RESOURCES, bathCategory)
         .then((res) => {
           let itemListTemp = res.data;
           Promise.all(

@@ -3,10 +3,22 @@ import React, { Component } from "react";
 import { Card } from "react-bootstrap";
 import { BASE_URL, ASSETS } from "../../Constants.js";
 import { inject, observer } from "mobx-react";
+import $ from "jquery";
 
 @inject("store")
 @observer
 class CardList extends Component {
+
+  componentDidMount() {
+    $("#add-items")
+      .find(".add-item")
+      .hover(function (e) {
+        $(".item-card-title").removeClass("active-title");
+        $(this).find(".item-card-title").addClass("active-title");
+        
+      })
+  }
+
   componentDidUpdate(prevProps, prevState, snapShot) {
     if (this.props.itemList !== prevProps.itemList) {
       this.props.store.setClickListener(true);

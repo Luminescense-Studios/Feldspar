@@ -509,8 +509,8 @@ var __extends = (this && this.__extends) || function (d, b) {
                     return this.position.y - this.halfSize.y;
                 };
                 /** */
-                this.initObject = function () {
-                    this.placeInRoom();
+                this.initObject = function (position) {
+                    this.placeInRoom(position);
                     // select and stuff
                     this.scene.needsUpdate = true;
                 };
@@ -551,14 +551,18 @@ var __extends = (this && this.__extends) || function (d, b) {
             };
             /** */
             Item.prototype.elevate = function (elevation) {
-                this.position.y = this.halfSize.y + elevation;
+                if (elevation > 0 && elevation < BP3D.Core.Configuration.getNumericValue(BP3D.Core.configWallHeight) - 0.5 * (this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y)) {
+                    this.position.y = this.halfSize.y + elevation;
+                }
             };
             /** */
             Item.prototype.resize = function (height, width, depth) {
-                var x = width / this.getWidth();
-                var y = height / this.getHeight();
-                var z = depth / this.getDepth();
-                this.setScale(x, y, z);
+                if (height > 0 && width > 0 && depth > 0) {
+                    var x = width / this.getWidth();
+                    var y = height / this.getHeight();
+                    var z = depth / this.getDepth();
+                    this.setScale(x, y, z);
+                }
             };
             /** */
             Item.prototype.setScale = function (x, y, z) {
@@ -1335,7 +1339,7 @@ var __extends = (this && this.__extends) || function (d, b) {
             }
 
             HalfEdge.prototype.drawOutline = function () {
-                this.box = new THREE.BoxHelper( this.plane, 0xffff00 );
+                this.box = new THREE.BoxHelper(this.plane, 0xffff00);
                 this.edgeSelectedCallbacks.fire(this.box);
             }
 
@@ -1719,7 +1723,7 @@ var Polygon = require('polygon')
             }
 
             Room.prototype.drawOutline = function () {
-                this.box = new THREE.BoxHelper( this.floorPlane, 0xffff00 );
+                this.box = new THREE.BoxHelper(this.floorPlane, 0xffff00);
                 this.roomSelectedCallbacks.fire(this.box);
             }
 
@@ -2283,7 +2287,11 @@ var Polygon = require('polygon')
                     this.position.z = center.z;
                     this.position.y = 0.5 * (this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y);
                 }
-            };;
+            };
+
+            FloorItem.prototype.setYPos = function (yPos) {
+
+            }
             /** Take action after a resize */
             FloorItem.prototype.resized = function () {
                 this.position.y = this.halfSize.y;
@@ -2368,14 +2376,22 @@ var Polygon = require('polygon')
                 _super.call(this, model, metadata, geometry, material, position, rotation, scale);
             };
             /** */
-            AnywhereItem.prototype.placeInRoom = function () {
+            AnywhereItem.prototype.placeInRoom = function (pos) {
                 if (!this.position_set) {
                     var center = this.model.floorplan.getCenter();
                     this.position.x = center.x;
                     this.position.z = center.z;
-                    this.position.y = 0.5 * (this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y);
+                    if (pos !== null && pos !== undefined) {
+                        this.position.y = pos.y;
+                    } else {
+                        this.position.y = 0.5 * (this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y);
+                    }
                 }
             };
+
+            AnywhereItem.prototype.setYPos = function (yPos) {
+                this.position.y = yPos;
+            }
 
             /** */
             AnywhereItem.prototype.isElevationAdjustable = function () {
@@ -2476,6 +2492,10 @@ var Polygon = require('polygon')
                 }
             };
 
+            CeilingItem.prototype.setYPos = function (yPos) {
+
+            }
+
             CeilingItem.prototype.resized = function () {
                 this.position.y = BP3D.Core.Configuration.getNumericValue(BP3D.Core.configWallHeight) - this.halfSize.y;
             };
@@ -2490,7 +2510,6 @@ var Polygon = require('polygon')
                     // if (vec3.y < 0.5 * (this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y)) {
                     //     vec3.y = this.position.y;
                     // } else {
-                    //     console.log("UP");
                     vec3.y = this.position.y;
                     // }
                     this.position.copy(vec3);
@@ -2615,7 +2634,7 @@ var Polygon = require('polygon')
                 } else {
                     this.backVisible = visible;
                 }
-                
+
                 this.visible = (this.frontVisible || this.backVisible);
             };
             /** */
@@ -2645,7 +2664,11 @@ var Polygon = require('polygon')
                     this.position.copy(newPos);
                     this.redrawWall();
                 }
-            };;
+            };
+
+            WallItem.prototype.setYPos = function (yPos) {
+
+            }
             /** */
             WallItem.prototype.moveToPosition = function (vec3, intersection) {
                 this.changeWallEdge(intersection.object.edge);
@@ -2995,9 +3018,16 @@ var Polygon = require('polygon')
                     item.fixed = fixed || false;
                     scope.items.push(item);
                     scope.add(item);
-                    item.initObject();
+                    item.initObject(position);
+                    if (position !== null && position !== undefined) {
+                        item.setYPos(position.y)
+                    }
                     scope.itemLoadedCallbacks.fire(item);
-                    THREE.Cache.add(fileName, {geometry: geometry, materials: materials});
+                    THREE.Cache.add(fileName, {
+                        geometry: geometry,
+                        materials: materials
+                    });
+
                 };
 
                 function addToMaterials(materials, newmaterial) {
@@ -3045,15 +3075,20 @@ var Polygon = require('polygon')
                             }
                         }
                     });
-                    
+
                     loaderCallback(newGeometry, newmaterials);
-                    
+
                     // loaderCallback(gltfModel.scene, newmaterials, true);
                 };
                 this.itemLoadingCallbacks.fire();
                 if (THREE.Cache.get(fileName) === undefined) {
-                    this.loader.load(fileName, gltfCallback, null, null // TODO_Ekki 
-                    );
+                    try {
+                        this.loader.load(fileName, gltfCallback, null, null); // TODO_Ekki
+                    } catch (e) {
+                        console.log(e);
+                        this.itemLoadedCallbacks.fire();
+                    }
+
                 } else {
                     loaderCallback(THREE.Cache.get(fileName).geometry, THREE.Cache.get(fileName).materials);
                 }
@@ -3667,6 +3702,9 @@ var Polygon = require('polygon')
                 element.mousedown(mouseDownEvent);
                 element.mouseup(mouseUpEvent);
                 element.mousemove(mouseMoveEvent);
+                element.on("touchstart", touchStartEvent);
+                element.on("touchmove", touchMoveEvent);
+                element.on("touchend", touchEndEvent);
                 mouse = new THREE.Vector2();
                 scene.itemRemovedCallbacks.add(itemRemoved);
                 scene.itemLoadedCallbacks.add(itemLoaded);
@@ -3674,12 +3712,13 @@ var Polygon = require('polygon')
             }
             // invoked via callback when item is loaded
             function itemLoaded(item) {
-                if (!item.position_set) {
-                    // console.log(1)
-                    scope.setSelectedObject(item);
-                    switchState(states.DRAGGING_FREE);
+                if (item !== undefined && item !== null) {
+                    if (!item.position_set) {
+                        scope.setSelectedObject(item);
+                        switchState(states.DRAGGING_FREE);
+                    }
+                    item.position_set = true;
                 }
-                item.position_set = true;
             }
 
             function clickPressed(vec2) {
@@ -3707,7 +3746,6 @@ var Polygon = require('polygon')
                 if (item === selectedObject) {
                     selectedObject.setUnselected();
                     selectedObject.mouseOff();
-                    // console.log(4)
                     scope.setSelectedObject(null);
                 }
             }
@@ -3788,6 +3826,135 @@ var Polygon = require('polygon')
                 return (state === states.ROTATING || state === states.ROTATING_FREE);
             };
 
+            // eslint-disable-next-line no-unused-vars
+            function touchStartEvent(event) {
+                touchMoveEvent(event);
+                if (scope.enabled) {
+                    event.preventDefault();
+                    mouseMoved = false;
+                    // console.log("mousedown")
+                    mouseMovedCounter = 0;
+                    mouseDown = true;
+                    switch (state) {
+                        case states.SELECTED:
+                            if (rotateMouseOver) {
+                                switchState(states.ROTATING);
+                            } else if (intersectedObject != null) {
+                                scope.setSelectedObject(intersectedObject);
+                                if (!intersectedObject.fixed) {
+                                    switchState(states.DRAGGING);
+                                }
+                            }
+                            break;
+                        case states.UNSELECTED:
+
+                            if (intersectedObject != null) {
+                                // console.log("calling set sel1bjhbjhbj")
+                                scope.setSelectedObject(intersectedObject);
+                                if (!intersectedObject.fixed) {
+                                    switchState(states.DRAGGING);
+                                }
+                            } else {
+                                // console.log("no object")
+                            }
+                            break;
+                        case states.DRAGGING:
+                        case states.ROTATING:
+                            break;
+                        case states.ROTATING_FREE:
+                            switchState(states.SELECTED);
+                            break;
+                        case states.DRAGGING_FREE:
+                            switchState(states.DRAGGING);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            // eslint-disable-next-line no-unused-vars
+            function touchMoveEvent(event) {
+                if (scope.enabled) {
+                    event.preventDefault();
+                    mouseMoved = true;
+                    // console.log("mousemoved")
+                    mouseMovedCounter++;
+                    mouse.x = event.touches[0].clientX;
+                    mouse.y = event.touches[0].clientY;
+                    if (!mouseDown) {
+                        // console.log("Mouse Moving");
+                        if (state === states.DRAGGING_FREE) {
+                            // console.log("in Dragging without mouse down")
+                            clickDragged();
+                            hud.update();
+                            scope.needsUpdate = true;
+                        } else {
+                            // console.log("updating intersections");
+                            updateIntersections();
+                        }
+                    }
+                    switch (state) {
+                        case states.UNSELECTED:
+                            // console.log("updating")
+                            updateMouseover();
+                            break;
+                        case states.SELECTED:
+                            updateMouseover();
+                            break;
+                        case states.DRAGGING:
+                        case states.ROTATING:
+                        case states.ROTATING_FREE:
+                            clickDragged();
+                            hud.update();
+                            scope.needsUpdate = true;
+                            break;
+                        default:
+                            updateMouseover();
+                            break;
+                    }
+                }
+            }
+
+            // eslint-disable-next-line no-unused-vars
+            function touchEndEvent(event) {
+                if (scope.enabled) {
+                    mouseDown = false;
+                    switch (state) {
+                        case states.DRAGGING:
+                            if (selectedObject != null) {
+                                selectedObject.clickReleased();
+                            }
+                            switchState(states.SELECTED);
+
+                            break;
+                        case states.ROTATING:
+                            if (mouseMovedCounter === 0 || mouseMovedCounter === 1) {
+                                switchState(states.ROTATING_FREE);
+                            } else {
+                                switchState(states.SELECTED);
+                            }
+                            break;
+                        case states.UNSELECTED:
+                            if (mouseMovedCounter === 0 || mouseMovedCounter === 1) {
+                                checkWallsAndFloors();
+                            }
+                            break;
+                        case states.SELECTED:
+                            if (intersectedObject == null && (mouseMovedCounter === 0 || mouseMovedCounter === 1)) {
+                                switchState(states.UNSELECTED);
+                                checkWallsAndFloors();
+                            }
+                            break;
+                        case states.ROTATING_FREE:
+                            break;
+                        default:
+                            // checkWallsAndFloors();
+                            break;
+                    }
+                }
+            }
+
             function mouseDownEvent(event) {
                 if (scope.enabled) {
                     event.preventDefault();
@@ -3800,7 +3967,6 @@ var Polygon = require('polygon')
                             if (rotateMouseOver) {
                                 switchState(states.ROTATING);
                             } else if (intersectedObject != null) {
-                                // console.log("calling set sel")
                                 scope.setSelectedObject(intersectedObject);
                                 if (!intersectedObject.fixed) {
                                     switchState(states.DRAGGING);
@@ -3809,7 +3975,6 @@ var Polygon = require('polygon')
                             break;
                         case states.UNSELECTED:
                             if (intersectedObject != null) {
-                                // console.log("calling set sel1bjhbjhbj")
                                 scope.setSelectedObject(intersectedObject);
                                 if (!intersectedObject.fixed) {
                                     switchState(states.DRAGGING);
@@ -3881,7 +4046,6 @@ var Polygon = require('polygon')
             function onEntry(state) {
                 switch (state) {
                     case states.UNSELECTED:
-                        // console.log(3)
                         scope.setSelectedObject(null);
                         // eslint-disable-next-line no-fallthrough
                     case states.SELECTED:
@@ -3968,7 +4132,6 @@ var Polygon = require('polygon')
             }
             // returns the first intersection object
             this.itemIntersection = function (vec2, item) {
-                // console.log(item)
                 if (item == null) {
                     return null;
                 }
@@ -4026,7 +4189,6 @@ var Polygon = require('polygon')
                 if (selectedObject != null) {
                     selectedObject.setUnselected();
                 }
-                // console.log(2)
                 if (object != null) {
                     selectedObject = object;
                     selectedObject.setSelected();
@@ -4202,7 +4364,7 @@ var Polygon = require('polygon')
                 updateTexture();
                 updatePlanes();
                 addToScene();
-                
+
             }
 
             function drawOutline(box) {
@@ -4504,20 +4666,20 @@ var Polygon = require('polygon')
             };
 
             function init() {
-                var light = new THREE.HemisphereLight(0xffffff, 0x888888, 1);
-                light.position.set(0, height, 0);
-                scene.add(light);
+                // var light = new THREE.HemisphereLight(0xffffff, 0x000000, 0.2);
+                // light.position.set(0, height, 0);
+                // scene.add(light);
 
                 // add some lighting
-                // var ambientLight = new THREE.AmbientLight(0x0c0c0c);
-                // scene.add(ambientLight);
+                var ambientLight = new THREE.AmbientLight(0xffffff);
+                scene.add(ambientLight);
                 // var spotLight = new THREE.SpotLight(0xffffff);
                 // spotLight.position.set(-40, 60, -10);
                 // spotLight.castShadow = true;
                 // scene.add(spotLight);
 
-                dirLight = new THREE.DirectionalLight(0x5c5c5c, 1);
-                dirLight.position.set(0, 10, 0);
+                dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+                dirLight.position.set(0, height, 0);
                 dirLight.castShadow = true;
                 dirLight.target.position.set(0, 0, 0);
                 scene.add(dirLight);
@@ -4539,7 +4701,7 @@ var Polygon = require('polygon')
                 var size = floorplan.getSize();
                 var d = (Math.max(size.z, size.x) + tol) / 2.0;
                 var center = floorplan.getCenter();
-                var pos = new THREE.Vector3(center.x, height, center.z);
+                var pos = new THREE.Vector3(center.x + 100, height, center.z + 60);
                 dirLight.position.copy(pos);
                 dirLight.target.position.copy(center);
                 //dirLight.updateMatrix();
@@ -4925,6 +5087,71 @@ Contributors:
                 scope.update();
             }
 
+            function onTouchStart(event) {
+                if (scope.enabled === false) {
+                    return;
+                }
+                event.preventDefault();
+
+                if (scope.noRotate === true) {
+                    return;
+                }
+                state = STATE.ROTATE;
+                rotateStart.set(event.touches[0].clientX, event.touches[0].clientY);
+
+
+                scope.domElement.addEventListener('touchmove', onTouchMove, false);
+                scope.domElement.addEventListener('touchend', onTouchEnd, false);
+
+            }
+
+            function onTouchMove(event) {
+                if (scope.enabled === false)
+                    return;
+                event.preventDefault();
+                var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
+                if (state === STATE.ROTATE) {
+                    if (scope.noRotate === true)
+                        return;
+                    rotateEnd.set(event.touches[0].clientX, event.touches[0].clientY);
+                    rotateDelta.subVectors(rotateEnd, rotateStart);
+                    // rotating across whole screen goes 360 degrees around
+                    scope.rotateLeft(2 * Math.PI * rotateDelta.x / element.clientWidth * scope.rotateSpeed);
+                    // rotating up and down along whole screen attempts to go 360, but limited to 180
+                    scope.rotateUp(2 * Math.PI * rotateDelta.y / element.clientHeight * scope.rotateSpeed);
+                    rotateStart.copy(rotateEnd);
+                } else if (state === STATE.DOLLY) {
+                    if (scope.noZoom === true)
+                        return;
+                    dollyEnd.set(event.touches[0].clientX, event.touches[0].clientY);
+                    dollyDelta.subVectors(dollyEnd, dollyStart);
+                    if (dollyDelta.y > 0) {
+                        scope.dollyIn();
+                    } else {
+                        scope.dollyOut();
+                    }
+                    dollyStart.copy(dollyEnd);
+                } else if (state === STATE.PAN) {
+                    if (scope.noPan === true)
+                        return;
+                    panEnd.set(event.touches[0].clientX, event.touches[0].clientY);
+                    panDelta.subVectors(panEnd, panStart);
+                    scope.pan(panDelta);
+                    panStart.copy(panEnd);
+                }
+                // Greggman fix: https://github.com/greggman/three.js/commit/fde9f9917d6d8381f06bf22cdff766029d1761be
+                scope.update();
+            }
+
+            function onTouchEnd() {
+                if (scope.enabled === false)
+                    return;
+                // Greggman fix: https://github.com/greggman/three.js/commit/fde9f9917d6d8381f06bf22cdff766029d1761be
+                scope.domElement.removeEventListener('touchmove', onTouchMove, false);
+                scope.domElement.removeEventListener('touchend', onTouchEnd, false);
+                state = STATE.NONE;
+            }
+
             function onKeyDown(event) {
                 if (scope.enabled === false) {
                     return;
@@ -4958,114 +5185,15 @@ Contributors:
                 }
             }
 
-            function touchstart(event) {
-                if (scope.enabled === false) {
-                    return;
-                }
-                switch (event.touches.length) {
-                    case 1:
-                        if (scope.noRotate === true) {
-                            return;
-                        }
-                        state = STATE.TOUCH_ROTATE;
-                        rotateStart.set(event.touches[0].pageX, event.touches[0].pageY);
-                        break;
-                    case 2:
-                        if (scope.noZoom === true) {
-                            return;
-                        }
-                        state = STATE.TOUCH_DOLLY;
-                        var dx = event.touches[0].pageX - event.touches[1].pageX;
-                        var dy = event.touches[0].pageY - event.touches[1].pageY;
-                        var distance = Math.sqrt(dx * dx + dy * dy);
-                        dollyStart.set(0, distance);
-                        break;
-                    case 3:
-                        if (scope.noPan === true) {
-                            return;
-                        }
-                        state = STATE.TOUCH_PAN;
-                        panStart.set(event.touches[0].pageX, event.touches[0].pageY);
-                        break;
-                    default:
-                        state = STATE.NONE;
-                }
-            }
 
-            function touchmove(event) {
-                if (scope.enabled === false) {
-                    return;
-                }
-                event.preventDefault();
-                event.stopPropagation();
-                var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
-                switch (event.touches.length) {
-                    case 1:
-                        if (scope.noRotate === true) {
-                            return;
-                        }
-                        if (state !== STATE.TOUCH_ROTATE) {
-                            return;
-                        }
-                        rotateEnd.set(event.touches[0].pageX, event.touches[0].pageY);
-                        rotateDelta.subVectors(rotateEnd, rotateStart);
-                        // rotating across whole screen goes 360 degrees around
-                        scope.rotateLeft(2 * Math.PI * rotateDelta.x / element.clientWidth * scope.rotateSpeed);
-                        // rotating up and down along whole screen attempts to go 360, but limited to 180
-                        scope.rotateUp(2 * Math.PI * rotateDelta.y / element.clientHeight * scope.rotateSpeed);
-                        rotateStart.copy(rotateEnd);
-                        break;
-                    case 2:
-                        if (scope.noZoom === true) {
-                            return;
-                        }
-                        if (state !== STATE.TOUCH_DOLLY) {
-                            return;
-                        }
-                        var dx = event.touches[0].pageX - event.touches[1].pageX;
-                        var dy = event.touches[0].pageY - event.touches[1].pageY;
-                        var distance = Math.sqrt(dx * dx + dy * dy);
-                        dollyEnd.set(0, distance);
-                        dollyDelta.subVectors(dollyEnd, dollyStart);
-                        if (dollyDelta.y > 0) {
-                            scope.dollyOut();
-                        } else {
-                            scope.dollyIn();
-                        }
-                        dollyStart.copy(dollyEnd);
-                        break;
-                    case 3:
-                        if (scope.noPan === true) {
-                            return;
-                        }
-                        if (state !== STATE.TOUCH_PAN) {
-                            return;
-                        }
-                        panEnd.set(event.touches[0].pageX, event.touches[0].pageY);
-                        panDelta.subVectors(panEnd, panStart);
-                        scope.pan(panDelta);
-                        panStart.copy(panEnd);
-                        break;
-                    default:
-                        state = STATE.NONE;
-                }
-            }
 
-            function touchend() {
-                if (scope.enabled === false) {
-                    return;
-                }
-                state = STATE.NONE;
-            }
             this.domElement.addEventListener('contextmenu', function (event) {
                 event.preventDefault();
             }, false);
             this.domElement.addEventListener('mousedown', onMouseDown, false);
             this.domElement.addEventListener('mousewheel', onMouseWheel, false);
+            this.domElement.addEventListener('touchstart', onTouchStart, false);
             this.domElement.addEventListener('DOMMouseScroll', onMouseWheel, false); // firefox
-            this.domElement.addEventListener('touchstart', touchstart, false);
-            this.domElement.addEventListener('touchend', touchend, false);
-            this.domElement.addEventListener('touchmove', touchmove, false);
             document.addEventListener('keydown', onKeyDown, false);
         };
     })(Three = BP3D.Three || (BP3D.Three = {}));
@@ -5087,6 +5215,7 @@ Contributors:
             var rotating = false;
             var mouseover = false;
             // var tolerance = 10;
+            // eslint-disable-next-line no-unused-vars
             var height = 5;
             var distance = 20;
             var color = "#ffffff";
@@ -5314,6 +5443,14 @@ Contributors:
                 }).click(function () {
                     hasClicked = true;
                 });
+
+                scope.element.on("touchstart", function () {
+                    mouseOver = true;
+                    hasClicked = true;
+                })
+                scope.element.on("touchend", function () {
+                    mouseOver = false;
+                })
                 //canvas = new ThreeCanvas(canvasElement, scope);
 
             }

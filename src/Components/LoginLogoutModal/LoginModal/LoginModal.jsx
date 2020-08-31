@@ -1,12 +1,10 @@
-import "../../App.css";
+import "../../../App.css";
 import React, { Component } from "react";
 import { inject, observer } from "mobx-react";
 import Modal from "react-bootstrap/Modal";
 import { Tabs, Tab } from "react-bootstrap";
 import LoginForm from "./LoginForm.jsx";
 import SignupForm from "./SignupForm.jsx";
-import LoginModalHeading from "./LoginModalHeading.jsx"
-
 
 @inject("store")
 @observer
@@ -23,21 +21,16 @@ class LoginModal extends Component {
     this.props.store.setLoginModal(false);
   }
 
- 
   render() {
     const { store } = this.props;
     return (
       <Modal
-        size="lg"
         aria-labelledby="contained-modal-title-vcenter"
         centered
         show={store.showLoginModal}
         onHide={() => this.handleClose()}
         id="loginModal"
       >
-        <Modal.Header closeButton>
-          <Modal.Title><LoginModalHeading message="Login/Signup" /></Modal.Title>
-        </Modal.Header>
         <Modal.Body>
           <div className="login-form-space">
             <Tabs

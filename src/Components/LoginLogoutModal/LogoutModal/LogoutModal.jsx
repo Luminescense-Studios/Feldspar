@@ -1,9 +1,8 @@
-import "../../App.css";
+import "../../../App.css";
 import React, { Component } from "react";
 import { inject, observer } from "mobx-react";
 import Modal from "react-bootstrap/Modal";
-import LogoutModalHeading from "./LogoutModalHeading.jsx";
-import LogoutBody from "./LogoutBody.jsx"
+import LogoutBody from "./LogoutBody.jsx";
 
 @inject("store")
 @observer
@@ -28,12 +27,8 @@ class LoginModal extends Component {
         onHide={() => this.handleClose()}
         id="logoutModal"
       >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <LogoutModalHeading message="Logout" />
-          </Modal.Title>
-        </Modal.Header>
         <Modal.Body>
+          <div className="modal-plain-text">Confirm Log out?</div>
           <LogoutBody />
         </Modal.Body>
       </Modal>

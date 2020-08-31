@@ -1,8 +1,10 @@
 import "../App.css";
 import React, { Component } from "react";
 import $ from "jquery";
+import axios from "axios";
 import { BP3D } from "../engine/blueprint3d.js";
-import { INIT_STRUCTURE } from "../Constants.js";
+import { INIT_STRUCTURE, NEW_STRUCTURE } from "../Structures.js";
+import { BASE_URL, ASSETS } from "../Constants.js";
 import Button from "react-bootstrap/Button";
 import {
   FaSearchMinus,
@@ -16,8 +18,12 @@ import {
   FaArrowsAlt,
   FaPencilAlt,
   FaTrashAlt,
+  FaPencilRuler,
+  FaDraftingCompass,
+  FaPlus,
+  FaRedo,
 } from "react-icons/fa";
-import { Tabs, Tab } from "react-bootstrap";
+import { Tabs, Tab, OverlayTrigger, Tooltip } from "react-bootstrap";
 import CardListSofa from "./AddItems/CardListSofa.jsx";
 import CardListChair from "./AddItems/CardListChair.jsx";
 import CardListBed from "./AddItems/CardListBed.jsx";
@@ -25,9 +31,15 @@ import CardListRug from "./AddItems/CardListRug.jsx";
 import CardListMisc from "./AddItems/CardListMisc.jsx";
 import CardListKitchen from "./AddItems/CardListKitchen.jsx";
 import CardListArch from "./AddItems/CardListArch.jsx";
+import CardListBath from "./AddItems/CardListBath.jsx";
+import CardListLight from "./AddItems/CardListLight.jsx";
 import FloorTextureList from "./TextureList/FloorTextureList.jsx";
 import WallTextureList from "./TextureList/WallTextureList.jsx";
 import ContextMenu from "./ContextMenu.jsx";
+import SaveButton from "./SaveLoadModal/SaveFile/SaveButton.jsx";
+import LoadButton from "./SaveLoadModal/LoadFile/LoadButton.jsx";
+import SaveModal from "./SaveLoadModal/SaveFile/SaveModal.jsx";
+import LoadModal from "./SaveLoadModal/LoadFile/LoadModal.jsx";
 
 import { inject, observer } from "mobx-react";
 
@@ -41,6 +53,7 @@ class BlueprintPage extends Component {
       blueprint3d: {},
       addClickListener: false,
       currentStateName: "Design",
+      blob: "",
     };
     this.engine = this.engine.bind(this);
     this.setDesignState = this.setDesignState.bind(this);
@@ -50,6 +63,38 @@ class BlueprintPage extends Component {
     this.sideMenu = this.sideMenu.bind(this);
     this.textureSelector = this.textureSelector.bind(this);
     this.initItems = this.initItems.bind(this);
+    this.saveFile = this.saveFile.bind(this);
+    this.loadFile = this.loadFile.bind(this);
+  }
+
+  saveFile() {
+    if (this.state.blueprint3d.model !== undefined) {
+      var data = this.state.blueprint3d.model.exportSerialized();
+      // var a = window.document.createElement("a");
+      var blob = new Blob([data], {
+        type: "text",
+      });
+      this.setState({ blob: blob });
+      // a.href = window.URL.createObjectURL(blob);
+      // a.download = "design.blueprint3d";
+      // document.body.appendChild(a);
+      // a.click();
+      // document.body.removeChild(a);
+    }
+  }
+
+  async loadFile(uri) {
+    try {
+      // console.log("uri: " + uri);
+      if (uri !== null && uri !== "") {
+        let res = await axios.get(BASE_URL + ASSETS + uri);
+        this.state.blueprint3d.model.loadSerialized(JSON.stringify(res.data));
+      } else {
+        console.log("uri is null");
+      }
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   /*
@@ -70,22 +115,41 @@ class BlueprintPage extends Component {
     function init() {
       // Camera controls
       $("#zoom-in").click(zoomIn);
+      $("#zoom-in").on("touchend", zoomIn);
       $("#zoom-out").click(zoomOut);
+      $("#zoom-out").on("touchend", zoomOut);
+
       $("#zoom-in").dblclick(preventDefault);
       $("#zoom-out").dblclick(preventDefault);
 
       $("#reset-view").click(three.centerCamera);
+      $("#reset-view").on("touchend", three.centerCamera);
 
       $("#move-left").click(function () {
         pan(directions.LEFT);
       });
+      $("#move-left").on("touchend", function () {
+        pan(directions.LEFT);
+      });
+
       $("#move-right").click(function () {
         pan(directions.RIGHT);
       });
+      $("#move-right").on("touchend", function () {
+        pan(directions.RIGHT);
+      });
+
       $("#move-up").click(function () {
         pan(directions.UP);
       });
+      $("#move-up").on("touchend", function () {
+        pan(directions.UP);
+      });
+
       $("#move-down").click(function () {
+        pan(directions.DOWN);
+      });
+      $("#move-down").on("touchend", function () {
         pan(directions.DOWN);
       });
 
@@ -148,6 +212,9 @@ class BlueprintPage extends Component {
       $("#context-menu-delete").click(function (event) {
         selectedItem.remove();
       });
+      $("#context-menu-delete").on("touchend", function (event) {
+        selectedItem.remove();
+      });
 
       three.itemSelectedCallbacks.add(itemSelected);
       three.itemUnselectedCallbacks.add(itemUnselected);
@@ -178,6 +245,7 @@ class BlueprintPage extends Component {
       $("#item-depth").val(cmToIn(selectedItem.getDepth()).toFixed(0));
       $("#item-elevation").val(cmToIn(selectedItem.getElevation()).toFixed(0));
 
+      $("texture-context-container").show();
       $("#context-menu").show();
 
       if (selectedItem.isElevationAdjustable()) {
@@ -210,6 +278,7 @@ class BlueprintPage extends Component {
 
     function itemUnselected() {
       selectedItem = null;
+      $("texture-context-container").hide();
       $("#context-menu").hide();
     }
 
@@ -302,6 +371,7 @@ class BlueprintPage extends Component {
 
       $("#update-floorplan").click(floorplanUpdate);
       function reset() {
+        $("texture-context-container").hide();
         $("#wallTextures").hide();
         $("#floorTexturesDiv").hide();
       }
@@ -490,31 +560,34 @@ class BlueprintPage extends Component {
     }
 
     function wallClicked(halfEdge) {
-      if(currentTarget!==undefined && currentTarget!==null){
+      if (currentTarget !== undefined && currentTarget !== null) {
         currentTarget.removeOutline();
       }
       currentTarget = halfEdge;
       currentTarget.drawOutline();
       $("#floorTexturesDiv").hide();
+      $("texture-context-container").show();
       $("#wallTextures").show();
       initTextureSelectors();
     }
 
     function floorClicked(room) {
-      if(currentTarget!==undefined && currentTarget!==null){
+      if (currentTarget !== undefined && currentTarget !== null) {
         currentTarget.removeOutline();
       }
       currentTarget = room;
       currentTarget.drawOutline();
       $("#wallTextures").hide();
+      $("texture-context-container").show();
       $("#floorTexturesDiv").show();
       initTextureSelectors();
     }
 
     function reset() {
-      if(currentTarget!==undefined && currentTarget!==null){
+      if (currentTarget !== undefined && currentTarget !== null) {
         currentTarget.removeOutline();
       }
+      $("texture-context-container").hide();
       $("#wallTextures").hide();
       $("#floorTexturesDiv").hide();
       initTextureSelectors();
@@ -523,7 +596,7 @@ class BlueprintPage extends Component {
     init();
   }
 
-  engine() {
+  async engine(viewKey) {
     /*
      * Floorplanner controls
      */
@@ -570,16 +643,27 @@ class BlueprintPage extends Component {
         $(move).click(function () {
           scope.floorplanner.setMode(BP3D.Floorplanner.floorplannerModes.MOVE);
         });
+        // $(move).on("touchend", function () {
+        //   scope.floorplanner.setMode(BP3D.Floorplanner.floorplannerModes.MOVE);
+        // });
 
         $(draw).click(function () {
           scope.floorplanner.setMode(BP3D.Floorplanner.floorplannerModes.DRAW);
         });
+        // $(draw).on("touchend", function () {
+        //   scope.floorplanner.setMode(BP3D.Floorplanner.floorplannerModes.DRAW);
+        // });
 
         $(remove).click(function () {
           scope.floorplanner.setMode(
             BP3D.Floorplanner.floorplannerModes.DELETE
           );
         });
+        // $(remove).on("touchend", function () {
+        //   scope.floorplanner.setMode(
+        //     BP3D.Floorplanner.floorplannerModes.DELETE
+        //   );
+        // });
       }
 
       this.updateFloorplanView = function () {
@@ -598,37 +682,64 @@ class BlueprintPage extends Component {
 
     var mainControls = function (blueprint3d) {
       function newDesign() {
-        blueprint3d.model.loadSerialized(INIT_STRUCTURE);
+        blueprint3d.model.loadSerialized(NEW_STRUCTURE);
       }
 
-      function loadDesign(event) {
-        var file1 = event.target.files[0];
-        var reader = new FileReader();
-        reader.onload = function () {
-          var data = reader.result;
-          blueprint3d.model.loadSerialized(data);
-        };
-        reader.readAsText(file1);
-        $("#loadFile").replaceWith($("#loadFile").val("").clone(true));
-      }
+      // var loadDesign = async (event) => {
+      //   let name = $("#loadFile").attr('name');
+      //   let file1 = await axios.get(
+      //     "http://localhost:8001/assets/" + name
+      //   );
+      //   // var file1 = event.target.files[0];
+      //   var reader = new FileReader();
+      //   reader.onload = function () {
+      //     var data = reader.result;
+      //     blueprint3d.model.loadSerialized(data);
+      //   };
+      //   reader.readAsText(file1);
+      //   $("#loadFile").replaceWith($("#loadFile").val("").clone(true));
 
-      function saveDesign() {
-        var data = blueprint3d.model.exportSerialized();
-        var a = window.document.createElement("a");
-        var blob = new Blob([data], {
-          type: "text",
-        });
-        a.href = window.URL.createObjectURL(blob);
-        a.download = "design.blueprint3d";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
+      //   try {
+      //     let uri = $("#loadFile").attr("uri");
+      //     console.log("uri: " + uri);
+      //     if (uri !== "") {
+      //       let res = await axios.get("http://localhost:8001/assets/" + uri);
+      //       blueprint3d.model.loadSerialized(JSON.stringify(res.data));
+      //     }
+      //   } catch (e) {
+      //     console.log(e);
+      //   }
+      // };
+
+      // function saveDesign() {
+      //   var data = blueprint3d.model.exportSerialized();
+      //   var a = window.document.createElement("a");
+      //   var blob = new Blob([data], {
+      //     type: "text",
+      //   });
+      //   // setBlob(blob);
+      //   a.href = window.URL.createObjectURL(blob);
+      //   a.download = "design";
+      //   document.body.appendChild(a);
+      //   a.click();
+      //   document.body.removeChild(a);
+      // }
+
+      // function setBlob(blob) {
+      //   setNewBlob(blob);
+      // }
 
       function init() {
         $("#new").click(newDesign);
-        $("#loadFile").change(loadDesign);
-        $("#saveFile").click(saveDesign);
+        // $("#new").on("touchend", newDesign);
+
+        // $("#loadFile").click(loadDesign);
+        // $("#loadFileLabel").on("touchend", function () {
+        //   $("#loadFile").trigger("click");
+        // });
+
+        // $("#saveFile").click(saveDesign);
+        // $("#saveFile").on("touchend", saveDesign);
       }
 
       init();
@@ -659,10 +770,29 @@ class BlueprintPage extends Component {
 
     // This serialization format needs work
     // Load a simple rectangle room
-    this.state.blueprint3d.model.loadSerialized(INIT_STRUCTURE);
+    if (viewKey === "") {
+      this.state.blueprint3d.model.loadSerialized(INIT_STRUCTURE);
+    } else {
+      try {
+        let res = await axios.get(BASE_URL + ASSETS + viewKey);
+        // let file1 = new Blob(res)
+        // var blueprint3d = this.state.blueprint3d;
+        // var reader = new FileReader();
+        //   reader.onload = function () {
+        //     var data = reader.result;
+        //     blueprint3d.model.loadSerialized(data);
+        //   };
+        //   reader.readAsText(file1);
+        this.state.blueprint3d.model.loadSerialized(JSON.stringify(res.data));
+      } catch (e) {
+        console.log(e);
+        this.state.blueprint3d.model.loadSerialized(INIT_STRUCTURE);
+      }
+    }
   }
 
   componentDidMount() {
+    // const { store } = this.props;
     var opts = {
       floorplannerElement: "floorplanner-canvas",
       threeElement: "#viewer",
@@ -671,7 +801,15 @@ class BlueprintPage extends Component {
       widget: false,
     };
     this.setState({ blueprint3d: new BP3D.Blueprint3d(opts) }, () => {
-      this.engine();
+      if (
+        this.props.viewKey !== undefined &&
+        this.props.viewKey !== null &&
+        this.props.viewKey !== ""
+      ) {
+        this.engine(this.props.viewKey);
+      } else {
+        this.engine("");
+      }
     });
   }
 
@@ -696,6 +834,7 @@ class BlueprintPage extends Component {
     handleWindowResize();
 
     function reset() {
+      $("texture-context-container").hide();
       $("#wallTextures").hide();
       $("#floorTexturesDiv").hide();
     }
@@ -724,35 +863,83 @@ class BlueprintPage extends Component {
         {/* Left Column */}
         <div className="sidebar">
           {/* Main Navigation */}
-          <ul className="nav nav-sidebar vertical-container">
-            <li id="floorplan_tab">
-              <div className="justify-between">
-                Edit Floorplan
-                <span>
-                  <FaChevronRight />
-                </span>
-              </div>
-            </li>
-            <li id="design_tab">
-              <div className="justify-between">
-                Design
-                <span>
-                  <FaChevronRight />
-                </span>
-              </div>
-            </li>
-            <li id="items_tab">
-              <div className="justify-between">
-                Add Items
-                <span>
-                  <FaChevronRight />
-                </span>
-              </div>
-            </li>
-          </ul>
+          <div>
+            <ul className="nav nav-sidebar vertical-container">
+              <li id="floorplan_tab">
+                <OverlayTrigger
+                  placement="right"
+                  overlay={<Tooltip>Edit Floorplan</Tooltip>}
+                >
+                  <div>
+                    <FaPencilRuler />
+                  </div>
+                </OverlayTrigger>
+              </li>
+              <li id="design_tab">
+                <OverlayTrigger
+                  placement="right"
+                  overlay={<Tooltip>Design</Tooltip>}
+                >
+                  <div>
+                    <FaDraftingCompass />
+                  </div>
+                </OverlayTrigger>
+              </li>
+              <li id="items_tab">
+                <OverlayTrigger
+                  placement="right"
+                  overlay={<Tooltip>Add Items</Tooltip>}
+                >
+                  <div>
+                    <FaPlus />
+                  </div>
+                </OverlayTrigger>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <ul className="nav nav-sidebar vertical-container">
+              <li>
+                <OverlayTrigger
+                  placement="right"
+                  overlay={<Tooltip>New Plan</Tooltip>}
+                >
+                  <div id="new">
+                    <FaRedo />
+                  </div>
+                </OverlayTrigger>
+              </li>
+              {store.getLoggedIn && (
+                <li>
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={<Tooltip>Save</Tooltip>}
+                  >
+                    <div>
+                      <SaveButton />
+                    </div>
+                  </OverlayTrigger>
+                </li>
+              )}
+              {store.getLoggedIn && (
+                <li>
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={<Tooltip>Load</Tooltip>}
+                  >
+                    <div>
+                      <LoadButton />
+                    </div>
+                  </OverlayTrigger>
+                </li>
+              )}
+            </ul>
+          </div>
+          <SaveModal blob={this.state.blob} clickFunc={this.saveFile} />
+          <LoadModal clickFunc={this.loadFile} />
+        </div>
 
-          <hr />
-
+        <div id="texture-context-container">
           {/* Context Menu */}
           <div id="context-menu">
             <ContextMenu />
@@ -773,38 +960,6 @@ class BlueprintPage extends Component {
         <div className="right-container">
           {/* 3D Viewer */}
           <div id="viewer">
-            <div id="main-controls">
-              <Button
-                variant="secondary"
-                size="sm"
-                id="new"
-                className="basic-button"
-              >
-                New Plan
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                id="saveFile"
-                className="basic-button"
-              >
-                Save Plan
-              </Button>
-
-              <Button variant="secondary" size="sm" className="lean-button">
-                <label className="file-button" htmlFor="loadFile">
-                  Load Plan
-                </label>
-                <input
-                  hidden
-                  variant="secondary"
-                  size="sm"
-                  type="file"
-                  id="loadFile"
-                />
-              </Button>
-            </div>
-
             <div id="camera-controls">
               <Button
                 variant="danger"
@@ -930,7 +1085,6 @@ class BlueprintPage extends Component {
           <div id="add-items">
             <Tabs
               variant="pills"
-              
               id="controlled-tab-example"
               activeKey={this.state.key}
               onSelect={(k) => {
@@ -951,6 +1105,12 @@ class BlueprintPage extends Component {
               </Tab>
               <Tab eventKey="misc" title="Misc">
                 <CardListMisc loggedIn={store.getLoggedIn} />
+              </Tab>
+              <Tab eventKey="bath" title="Bath">
+                <CardListBath loggedIn={store.getLoggedIn} />
+              </Tab>
+              <Tab eventKey="light" title="Lights">
+                <CardListLight loggedIn={store.getLoggedIn} />
               </Tab>
               <Tab eventKey="kitchen" title="Kitchen">
                 <CardListKitchen loggedIn={store.getLoggedIn} />

@@ -1,16 +1,17 @@
-import "../../App.css";
+import "../../../App.css";
 import React, { Component } from "react";
 import { inject, observer } from "mobx-react";
 import Button from "react-bootstrap/Button";
+import { FaEnvelope, FaKey, FaUser } from "react-icons/fa";
 import {
   validateEmail,
   validatePassword,
   validateUsername,
-} from "../../Utils/Utils";
+} from "../../../Utils/Utils";
 import axios from "axios";
-import { BASE_URL_AUTH, USERS, REGISTER } from "../../Constants.js";
-import SmallAlert from "./SmallAlert.jsx"
-import LargeAlert from "./LargeAlert.jsx"
+import { BASE_URL_AUTH, USERS, REGISTER } from "../../../Constants.js";
+import SmallAlert from "../../SmallAlert.jsx";
+import LargeAlert from "../../LargeAlert.jsx";
 
 @inject("store")
 @observer
@@ -128,52 +129,85 @@ class SignupForm extends Component {
             this.handleSignupSubmit(e);
           }}
         >
-          {this.state.signupUsernameFormatError && <SmallAlert message="Cannot be blank" variant="danger" />}
-          <input
-            placeholder="Your Name"
-            variant="secondary"
-            size="sm"
-            type="text"
-            value={this.state.signupUsernameValue}
-            onChange={(e) => {
-              this.handleSignupUsernameChange(e);
-            }}
-            className="login-form-input"
-          />
-          {this.state.signupEmailFormatError && <SmallAlert message="invalid Email" variant="danger" />}
-          <input
-            placeholder="example@xyz.com"
-            variant="secondary"
-            size="sm"
-            type="email"
-            value={this.state.signupEmailValue}
-            onChange={(e) => {
-              this.handleSignupEmailChange(e);
-            }}
-            className="login-form-input"
-          />
+          {this.state.signupUsernameFormatError && (
+            <SmallAlert message="Cannot be blank" variant="danger" />
+          )}
+          <div className="login-form-input-space">
+            <div className="login-form-icon">
+              <FaUser />
+            </div>
 
-          {this.state.signupPasswordFormatError && <SmallAlert message="min. 8 characters" variant="danger" />}
-          <input
-            placeholder="password"
-            variant="secondary"
-            size="sm"
-            type="password"
-            value={this.state.signupPasswordValue}
-            onChange={(e) => {
-              this.handleSignupPasswordChange(e);
-            }}
-            className="login-form-input"
-          />
+            <input
+              placeholder="Name"
+              variant="secondary"
+              size="sm"
+              type="text"
+              value={this.state.signupUsernameValue}
+              onChange={(e) => {
+                this.handleSignupUsernameChange(e);
+              }}
+              className="login-form-input"
+            />
+          </div>
+          {this.state.signupEmailFormatError && (
+            <SmallAlert message="invalid Email" variant="danger" />
+          )}
+          <div className="login-form-input-space">
+            <div className="login-form-icon">
+              <FaEnvelope />
+            </div>
+            <input
+              placeholder="Email"
+              variant="secondary"
+              size="sm"
+              type="email"
+              value={this.state.signupEmailValue}
+              onChange={(e) => {
+                this.handleSignupEmailChange(e);
+              }}
+              className="login-form-input"
+            />
+          </div>
 
-          <Button variant="danger" className="login-submit-button" type="submit" disabled={this.state.isDisabled}>
+          {this.state.signupPasswordFormatError && (
+            <SmallAlert message="min. 8 characters" variant="danger" />
+          )}
+          <div className="login-form-input-space">
+            <div className="login-form-icon">
+              <FaKey />
+            </div>
+            <input
+              placeholder="Password"
+              variant="secondary"
+              size="sm"
+              type="password"
+              value={this.state.signupPasswordValue}
+              onChange={(e) => {
+                this.handleSignupPasswordChange(e);
+              }}
+              className="login-form-input"
+            />
+          </div>
+
+          <Button
+            variant="danger"
+            className="login-submit-button"
+            type="submit"
+            disabled={this.state.isDisabled}
+          >
             SignUp
           </Button>
         </form>
 
-        {this.state.isRegistered && <LargeAlert message="Successfully Registered" variant="success" />}
-        {this.state.isError && <LargeAlert message="Some ErrorOcurred" variant="danger" />}
-        {this.state.isEmailExists && <LargeAlert message="Email already registered" variant="danger" />}
+        {this.state.isRegistered && (
+          <LargeAlert message="Successfully Registered" variant="success" />
+        )}
+        {this.state.isError && (
+          <LargeAlert message="Some ErrorOcurred" variant="danger" />
+        )}
+        {this.state.isEmailExists && (
+          <LargeAlert message="Email already registered" variant="danger" />
+        )}
       </div>
     );
   }

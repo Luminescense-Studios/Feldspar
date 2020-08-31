@@ -1,8 +1,7 @@
 import React, { Component } from "react";
-import BluePrintPage from "./Components/BlueprintPage.jsx";
-import TopBar from "./Components/TopBar/TopBar.jsx";
-import ComingSoonPage from "./Components/ComingSoonPage.jsx";
+import Homepage from "./Components/Homepage.jsx";
 import { inject, observer } from "mobx-react";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 @inject("store")
 @observer
@@ -12,13 +11,16 @@ class App extends Component {
   }
 
   render() {
-    const { store } = this.props;
     return (
-      <div style={{width: "100%", height: "100%"}}>
-        <TopBar />
-        <BluePrintPage addClickListener={store.getClickListener}/>
-        <ComingSoonPage />
-      </div>
+      <Router>
+        <Switch>
+          <Route path="/about"></Route>
+          <Route path="/view/:viewKey" component={Homepage} />
+          <Route path="/">
+            <Homepage />
+          </Route>
+        </Switch>
+      </Router>
     );
   }
 }

@@ -1,10 +1,10 @@
-import "../../App.css";
+import "../../../App.css";
 import React, { Component } from "react";
 import { inject, observer } from "mobx-react";
 import Button from "react-bootstrap/Button";
 import axios from "axios";
-import { BASE_URL_AUTH, USERS, LOGOUT } from "../../Constants.js";
-import LargeAlert from "./LargeAlert.jsx";
+import { BASE_URL_AUTH, USERS, LOGOUT } from "../../../Constants.js";
+import LargeAlert from "../../LargeAlert.jsx";
 
 @inject("store")
 @observer
@@ -28,7 +28,7 @@ class LogoutBody extends Component {
     };
 
     try {
-      let res = await axios.post(BASE_URL_AUTH + USERS + LOGOUT, payload);
+      await axios.post(BASE_URL_AUTH + USERS + LOGOUT, payload);
       this.setState({
         isError: false,
         isDisabled: true,

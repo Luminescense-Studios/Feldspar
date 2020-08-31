@@ -66,7 +66,6 @@ class FloorTextureList extends Component {
               let temp = [...this.state.textureListWood];
               temp.push(res.data);
               this.setState({ textureListWood: temp });
-              // console.log(temp);
               return res.data;
             })
           );
