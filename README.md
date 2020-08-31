@@ -1,5 +1,13 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+DEMO: http://182.224.182.120:3000
+
+The backend code is private for security reasons, which will be made public after the issues are resolved.
+
+TO DO:
+1. Add documentation
+2. Make the app more secure
+
 ## Available Scripts
 
 In the project directory, you can run:
