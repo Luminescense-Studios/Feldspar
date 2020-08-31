@@ -2,8 +2,7 @@
 
 This is a project for creating simple interior designs for homes with very little experience and designers can easily share a link with their clients.
 It is based on two other projects:
-[blueprint3d](https://github.com/furnishup/blueprint3d)
-
+[blueprint3d](https://github.com/furnishup/blueprint3d),
 [blueprint-js](https://github.com/aalavandhaann/blueprint-js)
 
 Built using React to make it a fully functioning web app, ready to deploy and can support all modern functionalities.
