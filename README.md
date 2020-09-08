@@ -7,7 +7,7 @@ It is based on two other projects:
 
 Built using React to make it a fully functioning web app, ready to deploy and can support all modern functionalities.
 
-DEMO: [Feldspar](https://182.224.182.120:3000)
+DEMO: [Feldspar](https://www.feldsparhomes.com)
 
 The backend code is private for security reasons, which will be made public after the issues are resolved.
 
