@@ -1,7 +1,7 @@
 // SERVER
-export const HOST_URL = "http://18.224.182.120:3000/";
-export const BASE_URL = "http://18.224.182.120:8001/";
-export const BASE_URL_AUTH = "http://18.224.182.120:8000/";
+export const HOST_URL = "https://www.feldsparhomes.com/";
+export const BASE_URL = "https://www.feldsparhomes.com:8001/";
+export const BASE_URL_AUTH = "https://www.feldsparhomes.com:8000/";
 export const DEFAULT_WALL_MAP = "5f0dde8ee5148d0ef82ff069";
 export const DEFAULT_FLOOR_MAP = "5f0dddf4e5148d0ef82ff066";
 

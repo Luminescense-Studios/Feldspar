@@ -1,8 +1,13 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
 
 This is a project for creating simple interior designs for homes with very little experience and designers can easily share a link with their clients.
+It is based on two other projects:
+[blueprint3d](https://github.com/furnishup/blueprint3d)
+[blueprint-js](https://github.com/aalavandhaann/blueprint-js)
 
-DEMO: http://182.224.182.120:3000
+Built using React to make it a fully functioning web app, ready to deploy and can support all modern functionalities.
+
+DEMO: [Feldspar](https://182.224.182.120:3000)
 
 The backend code is private for security reasons, which will be made public after the issues are resolved.
 
