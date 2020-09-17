@@ -9,6 +9,7 @@ import NameDisplay from "./NameDisplay.jsx";
 import CompanyName from "./CompanyName.jsx";
 import TopBarButton from "./TopBarButton.jsx";
 import InfoModal from "./InfoModal.jsx";
+import {BASE_URL, ASSETS, LOGO_NO_MOON} from "../../Constants.js"
 
 @inject("store")
 @observer
@@ -40,7 +41,7 @@ class TopBar extends Component {
     return (
       <div className="top-bar">
         <div className="horizontal-flex">
-          <img src="./logo-no-moon.svg" className="top-bar-logo" alt=""/>
+          <img src={BASE_URL + ASSETS + LOGO_NO_MOON} className="top-bar-logo" alt=""/>
           <CompanyName message="Feldspar" />
         </div>
         <div className="horizontal-flex">

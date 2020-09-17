@@ -486,6 +486,8 @@ var __extends = (this && this.__extends) || function (d, b) {
                 this.obstructOnFloorMoves = false;
                 /** Does this object affect other on ceiling items */
                 this.obstructCeilingMoves = false;
+                this.light = null;
+                this.lightPosition = new THREE.Vector3();
                 /** Show rotate option in context menu */
                 this.allowRotate = true;
                 /** */
@@ -1322,7 +1324,9 @@ var __extends = (this && this.__extends) || function (d, b) {
                     geometry.faces.push(new THREE.Face3(0, 2, 3));
                     geometry.computeFaceNormals();
                     geometry.computeBoundingBox();
-                    this.plane = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial());
+                    this.plane = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial());
+                    this.plane.receiveShadow = true;
+                    this.plane.castShadow = true;
                     this.plane.visible = false;
                     this.plane.edge = this; // js monkey patch
                     this.computeTransforms(this.interiorTransform, this.invInteriorTransform, this.interiorStart(), this.interiorEnd());
@@ -1761,10 +1765,12 @@ var Polygon = require('polygon')
                 });
                 var shape = new THREE.Shape(points);
                 var geometry = new THREE.ShapeGeometry(shape);
-                this.floorPlane = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+                this.floorPlane = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
                     side: THREE.DoubleSide
                 }));
                 this.floorPlane.visible = false;
+                this.floorPlane.castShadow = true;
+                this.floorPlane.receiveShadow = true;
                 this.floorPlane.rotation.set(Math.PI / 2, 0, 0);
                 this.floorPlane.room = this; // js monkey patch
             };
@@ -2507,11 +2513,9 @@ var Polygon = require('polygon')
                     return;
                 } else {
                     this.hideError();
-                    // if (vec3.y < 0.5 * (this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y)) {
-                    //     vec3.y = this.position.y;
-                    // } else {
+
                     vec3.y = this.position.y;
-                    // }
+
                     this.position.copy(vec3);
                 }
             };
@@ -2552,6 +2556,104 @@ var Polygon = require('polygon')
             return CeilingItem;
         })(Items.FloorItem);
         Items.CeilingItem = CeilingItem;
+    })(Items = BP3D.Items || (BP3D.Items = {}));
+})(BP3D || (BP3D = {}));
+
+(function (BP3D) {
+    // eslint-disable-next-line no-unused-vars
+    var Items;
+    (function (Items) {
+        /**
+         * AnyWhere Item
+         */
+        var CeilingLight = (function (_super) {
+            __extends(CeilingLight, _super);
+
+            function CeilingLight(model, metadata, geometry, material, position, rotation, scale) {
+                _super.call(this, model, metadata, geometry, material, position, rotation, scale);
+                this.obstructCeilingMoves = true;
+                this.obstructFloorMoves = false;
+                this.castShadow = false;
+                this.receiveShadow = false;
+                // console.log("adding light 0");
+                this.light = new THREE.PointLight(0xffffcc, 0.6, 300);
+                // var center = model.floorplan.getCenter();
+                this.light.position.x = this.position.x;
+                this.light.position.z = this.position.z;
+                this.light.position.y = this.position.y + this.halfSize.y;
+                model.scene.add(this.light);
+
+            };
+            /** */
+            CeilingLight.prototype.placeInRoom = function () {
+                if (!this.position_set) {
+                    var center = this.model.floorplan.getCenter();
+                    this.position.x = center.x;
+                    this.position.z = center.z;
+                    this.position.y = BP3D.Core.Configuration.getNumericValue(BP3D.Core.configWallHeight) - 0.5 * (this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y);
+
+                    // console.log("adding light 1");
+                    // this.light = new THREE.PointLight(0xffffcc, 1, 300);
+                    this.light.position.x = center.x;
+                    this.light.position.z = center.z;
+                    this.light.position.y = this.position.y + this.halfSize.y;
+
+                    this.model.scene.add(this.light);
+                }
+            };
+
+            CeilingLight.prototype.resized = function () {
+                this.position.y = BP3D.Core.Configuration.getNumericValue(BP3D.Core.configWallHeight) - this.halfSize.y;
+                console.log("resizing")
+                console.log(this.light)
+                if (this.light !== undefined && this.light !== null) {
+                    // console.log("lights")
+                    this.light.position.x = this.position.x;
+                    this.light.position.z = this.position.z;
+                    this.light.position.y = this.position.y + this.halfSize.y;
+                } else {
+                    // console.log("adding light 2");
+                    // this.light = new THREE.PointLight(0xffffcc, 1, 300);
+                    // this.light.position.x = this.position.x;
+                    // this.light.position.z = this.position.z;
+                    // this.light.position.y = this.position.y + this.halfSize.y;
+
+                    // this.model.scene.add(this.light);
+                }
+            };
+
+            CeilingLight.prototype.moveToPosition = function (vec3, intersection) {
+                // keeps the position in the room
+                if (!this.isValidPosition(vec3)) {
+                    this.showError(vec3);
+                    return;
+                } else {
+                    this.hideError();
+
+                    vec3.y = this.position.y;
+
+                    this.position.copy(vec3);
+                    if (this.light !== undefined && this.light !== null) {
+                        // console.log("moving light");
+                        // console.log(this.light);
+                        this.light.position.copy(vec3);
+                        this.light.position.y = this.position.y + this.halfSize.y;
+                        // this.light.matrixWorldNeedsUpdate = true;
+
+                    } else {
+                        // console.log("adding light 3");
+                        // this.light = new THREE.PointLight(0xffffcc, 1, 300);
+                        // this.light.position.copy(vec3);
+                        // this.light.position.y = this.position.y + this.halfSize.y;
+
+                        // this.model.scene.add(this.light);
+                    }
+                }
+            };
+
+            return CeilingLight;
+        })(Items.CeilingItem);
+        Items.CeilingLight = CeilingLight;
     })(Items = BP3D.Items || (BP3D.Items = {}));
 })(BP3D || (BP3D = {}));
 
@@ -2762,6 +2864,7 @@ var Polygon = require('polygon')
                 _super.call(this, model, metadata, geometry, material, position, rotation, scale);
                 this.addToWall = true;
                 this.obstructInWallMoves = true;
+                this.castShadow = true;
             };
 
             /** */
@@ -2820,6 +2923,99 @@ var Polygon = require('polygon')
     })(Items = BP3D.Items || (BP3D.Items = {}));
 })(BP3D || (BP3D = {}));
 
+(function (BP3D) {
+    // eslint-disable-next-line no-unused-vars
+    var Items;
+    (function (Items) {
+        /** */
+        var WindowItem = (function (_super) {
+            __extends(WindowItem, _super);
+
+            function WindowItem(model, metadata, geometry, material, position, rotation, scale) {
+                _super.call(this, model, metadata, geometry, material, position, rotation, scale);
+                this.addToWall = true;
+                this.obstructInWallMoves = true;
+                this.castShadow = false;
+                this.light = new THREE.PointLight(0xffffcc, 0.5, 300);
+                this.light.position.x = this.position.x;
+                this.light.position.z = this.position.z;
+                this.light.position.y = this.position.y;
+                model.scene.add(this.light);
+            };
+
+            /** */
+            WindowItem.prototype.removed = function () {
+                if (this.currentWallEdge != null && this.addToWall) {
+                    BP3D.Core.Utils.removeValue(this.currentWallEdge.wall.items, this);
+                    if (this.light !== undefined && this.light != null) {
+                        this.model.scene.remove(this.light);
+                    }
+                    this.redrawWall();
+                }
+            };
+            /** */
+            WindowItem.prototype.moveToPosition = function (vec3, intersection) {
+                if (this.isValidPosition(vec3)) {
+                    this.changeWallEdge(intersection.object.edge);
+                    this.boundMove(vec3);
+                    this.position.copy(vec3);
+                    if (this.light !== undefined && this.light !== null) {
+                        this.light.position.copy(vec3);
+                        // console.log("moved light")
+                    } else {
+                        // console.log("null light")
+                    }
+                    this.redrawWall();
+                } else {
+                    return;
+                }
+            };
+
+            /** */
+            WindowItem.prototype.getWallOffset = function () {
+                // fudge factor so it saves to the right wall
+                return -this.currentWallEdge.offset + 0.5;
+            };
+
+            WindowItem.prototype.isValidPosition = function (vec3) {
+                var cornersXZ = this.getCornersXZBIG('x', 'z', vec3);
+
+                var objects = this.model.scene.getItems();
+                for (let i = 0; i < objects.length; i++) {
+                    if (objects[i] === this || !objects[i].obstructInWallMoves) {
+                        continue;
+                    }
+
+                    if (!BP3D.Core.Utils.polygonOutsidePolygon(cornersXZ, objects[i].getCornersXZ('x', 'z')) ||
+                        !BP3D.Core.Utils.polygonOutsidePolygon(objects[i].getCornersXZ('x', 'z'), cornersXZ) ||
+                        BP3D.Core.Utils.polygonPolygonIntersect(cornersXZ, objects[i].getCornersXZ('x', 'z'))) {
+                        // console.log('object not outside other objects  XY');
+                        return false;
+                    }
+
+
+                    // if (!BP3D.Core.Utils.polygonOutsidePolygon(cornersXZ, objects[i].getCorners('x', 'z')) ||
+                    //     BP3D.Core.Utils.polygonPolygonIntersect(cornersXZ, objects[i].getCorners('x', 'z'))) {
+                    //     console.log('object not outside other objects  XZ');
+                    //     return false;
+                    // }
+                    // if (!BP3D.Core.Utils.polygonOutsidePolygon(cornersYZ, objects[i].getCornersYZ('y', 'z')) ||
+                    //     BP3D.Core.Utils.polygonPolygonIntersect(cornersYZ, objects[i].getCornersYZ('y', 'z'))) {
+                    //     console.log('object not outside other objects YZ');
+                    //     return false;
+                    // }
+
+                }
+
+                return true;
+            };
+            return WindowItem;
+        })(Items.InWallItem);
+        Items.WindowItem = WindowItem;
+    })(Items = BP3D.Items || (BP3D.Items = {}));
+})(BP3D || (BP3D = {}));
+
+
 
 (function (BP3D) {
     // eslint-disable-next-line no-unused-vars
@@ -2835,6 +3031,7 @@ var Polygon = require('polygon')
                 this.obstructInWallMoves = true;
                 this.obstructFloorMoves = true;
                 this.addToWall = true;
+                this.castShadow = false;
             };
             return InWallFloorItem;
         })(Items.InWallItem);
@@ -2891,12 +3088,15 @@ var Polygon = require('polygon')
         var item_types = {
             1: Items.FloorItem,
             2: Items.WallItem,
-            3: Items.InWallItem,
+            3: Items.WindowItem,
+            4: Items.InWallItem,
             7: Items.InWallFloorItem,
             8: Items.OnFloorItem,
             9: Items.WallFloorItem,
             10: Items.AnywhereItem,
-            11: Items.CeilingItem,
+            11: Items.CeilingLight,
+            12: Items.CeilingItem,
+            //add window, and ceiling light as seperate
         };
         /** Factory class to create items. */
         var Factory = (function () {
@@ -3080,17 +3280,22 @@ var Polygon = require('polygon')
 
                     // loaderCallback(gltfModel.scene, newmaterials, true);
                 };
+
+                var onError = function (error) {
+                    console.log(error);
+                    scope.itemLoadedCallbacks.fire();
+                }
+
                 this.itemLoadingCallbacks.fire();
                 if (THREE.Cache.get(fileName) === undefined) {
-                    try {
-                        this.loader.load(fileName, gltfCallback, null, null); // TODO_Ekki
-                    } catch (e) {
-                        console.log(e);
-                        this.itemLoadedCallbacks.fire();
-                    }
-
+                    this.loader.load(fileName, gltfCallback, null, onError); // TODO_Ekki
                 } else {
-                    loaderCallback(THREE.Cache.get(fileName).geometry, THREE.Cache.get(fileName).materials);
+                    if (THREE.Cache.get(fileName).geometry !== null && THREE.Cache.get(fileName).geometry !== undefined && THREE.Cache.get(fileName).materials !== null && THREE.Cache.get(fileName).materials !== undefined) {
+                        loaderCallback(THREE.Cache.get(fileName).geometry, THREE.Cache.get(fileName).materials);
+                    } else {
+                        console.log("Geometry or Materials NULL");
+                        this.loader.load(fileName, gltfCallback, null, onError); // TODO_Ekki
+                    }
                 }
                 // this.loader.load(fileName, gltfCallback, null, null);
             };
@@ -3127,6 +3332,13 @@ var Polygon = require('polygon')
             Model.prototype.loadSerialized = function (json) {
                 // TODO: better documentation on serialization format.
                 // TODO: a much better serialization format.
+                var objects = this.scene.getItems();
+                for (var i = 0; i < objects.length; i++) {
+                    var object = objects[i];
+                    if (object.light !== undefined && object.light !== null) {
+                        this.scene.remove(object.light);
+                    }
+                }
                 this.roomLoadingCallbacks.fire();
                 var data = JSON.parse(json);
                 this.newRoom(data.floorplan, data.items);
@@ -4293,6 +4505,8 @@ var Polygon = require('polygon')
                 floor.scale.set(textureScale, textureScale, textureScale);
                 floor.receiveShadow = true;
                 floor.castShadow = false;
+                floor.renderReverseSided = false; //true;
+                floor.renderSingleSided = false; //true;
                 return floor;
             }
 
@@ -4318,12 +4532,12 @@ var Polygon = require('polygon')
                 scene.add(floorPlane);
                 //scene.add(roofPlane);
                 // hack so we can do intersect testing
-                scene.add(room.floorPlane);
+                // scene.add(room.floorPlane);
             };
             this.removeFromScene = function () {
                 scene.remove(floorPlane);
                 //scene.remove(roofPlane);
-                scene.remove(room.floorPlane);
+                // scene.remove(room.floorPlane);
             };
         };
     })(Three = BP3D.Three || (BP3D.Three = {}));
@@ -4466,7 +4680,7 @@ var Polygon = require('polygon')
             }
 
             function updatePlanes() {
-                var wallMaterial = new THREE.MeshBasicMaterial({
+                var wallMaterial = new THREE.MeshPhongMaterial({
                     color: 0xffffff,
                     // ambientColor: 0xffffff, TODO_Ekki
                     //ambient: scope.wall.color,
@@ -4553,6 +4767,8 @@ var Polygon = require('polygon')
                 geometry.computeFaceNormals();
                 geometry.computeVertexNormals();
                 var mesh = new THREE.Mesh(geometry, material);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
                 return mesh;
             }
 
@@ -4661,6 +4877,8 @@ var Polygon = require('polygon')
             var tol = 1;
             var height = 300; // TODO: share with Blueprint.Wall
             var dirLight;
+            // var helper;
+            var targetObject;
             this.getDirLight = function () {
                 return dirLight;
             };
@@ -4678,18 +4896,34 @@ var Polygon = require('polygon')
                 // spotLight.castShadow = true;
                 // scene.add(spotLight);
 
-                dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
-                dirLight.position.set(0, height, 0);
+                var center = floorplan.getCenter();
+                var posLight = new THREE.Vector3(center.x, height, center.z);
+                var posTarget = new THREE.Vector3(center.x, height, center.z);
+                dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+                dirLight.position.copy(posLight);
                 dirLight.castShadow = true;
-                dirLight.target.position.set(0, 0, 0);
-                scene.add(dirLight);
-                scene.add(dirLight.target);
 
-                dirLight.shadow.mapSize.width = 512;
-                dirLight.shadow.mapSize.height = 512;
+                targetObject = new THREE.Object3D();
+                targetObject.position.copy(posTarget);
+                dirLight.target = targetObject;
+                scene.add(dirLight);
+                scene.add(targetObject);
+                scene.add(dirLight.target);
+            
+                // helper = new THREE.DirectionalLightHelper(dirLight, 5);
+                // scene.add(helper);
+
+                dirLight.shadow.mapSize.width = 1024;
+                dirLight.shadow.mapSize.height = 1024;
                 dirLight.shadow.camera.near = 0.5;
                 dirLight.shadow.camera.far = 500;
-                // dirLight.shadow.bias = -0.0001;
+                // dirLight.shadow.bias = 0.0005;
+
+
+                
+                // scene.add(dirLight.target);
+
+
                 // dirLight.visible = true;
 
                 floorplan.fireOnUpdatedRooms(updateShadowCamera);
@@ -4701,9 +4935,9 @@ var Polygon = require('polygon')
                 var size = floorplan.getSize();
                 var d = (Math.max(size.z, size.x) + tol) / 2.0;
                 var center = floorplan.getCenter();
-                var pos = new THREE.Vector3(center.x + 100, height, center.z + 60);
+                var pos = new THREE.Vector3(center.x + 100, height, center.z);
                 dirLight.position.copy(pos);
-                dirLight.target.position.copy(center);
+                targetObject.position.copy(center);
                 //dirLight.updateMatrix();
                 dirLight.updateWorldMatrix()
                 dirLight.shadow.camera.left = -d;
@@ -5416,7 +5650,7 @@ Contributors:
                 });
                 renderer.autoClear = false;
                 renderer.shadowMap.enabled = true;
-                renderer.shadowMapSoft = true;
+
                 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
                 // eslint-disable-next-line no-unused-vars
                 var skybox = new Three.Skybox(scene);

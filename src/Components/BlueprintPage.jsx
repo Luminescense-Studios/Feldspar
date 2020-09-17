@@ -258,11 +258,13 @@ class BlueprintPage extends Component {
     }
 
     function resize() {
-      selectedItem.resize(
-        inToCm($("#item-height").val()),
-        inToCm($("#item-width").val()),
-        inToCm($("#item-depth").val())
-      );
+      if (selectedItem !== null) {
+        selectedItem.resize(
+          inToCm($("#item-height").val()),
+          inToCm($("#item-width").val()),
+          inToCm($("#item-depth").val())
+        );
+      }
     }
 
     function elevate() {

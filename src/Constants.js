@@ -4,6 +4,7 @@ export const BASE_URL = "https://www.feldsparhomes.com:8001/";
 export const BASE_URL_AUTH = "https://www.feldsparhomes.com:8000/";
 export const DEFAULT_WALL_MAP = "5f0dde8ee5148d0ef82ff069";
 export const DEFAULT_FLOOR_MAP = "5f0dddf4e5148d0ef82ff066";
+export const LOGO_NO_MOON = "5f5b4466bde15a044b226a5f";
 
 // DEV-LOCAL
 // export const HOST_URL = "http://localhost:3000/";
