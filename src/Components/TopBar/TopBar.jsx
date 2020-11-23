@@ -1,15 +1,16 @@
 import "../../App.css";
 import React, { Component } from "react";
 import { inject, observer } from "mobx-react";
+import { Link } from "react-router-dom";
 import Button from "react-bootstrap/Button";
-import { FaQuestionCircle } from "react-icons/fa";
+import { FaQuestionCircle, FaArrowRight } from "react-icons/fa";
 import LoginModal from "../LoginLogoutModal/LoginModal/LoginModal.jsx";
 import LogoutModal from "../LoginLogoutModal/LogoutModal/LogoutModal.jsx";
 import NameDisplay from "./NameDisplay.jsx";
 import CompanyName from "./CompanyName.jsx";
 import TopBarButton from "./TopBarButton.jsx";
 import InfoModal from "./InfoModal.jsx";
-import {BASE_URL, ASSETS, LOGO_NO_MOON} from "../../Constants.js"
+import { FELDSPAR, BASE_URL, ASSETS, LOGO_NO_MOON } from "../../Constants.js";
 
 @inject("store")
 @observer
@@ -41,8 +42,12 @@ class TopBar extends Component {
     return (
       <div className="top-bar">
         <div className="horizontal-flex">
-          <img src={BASE_URL + ASSETS + LOGO_NO_MOON} className="top-bar-logo" alt=""/>
-          <CompanyName message="Feldspar" />
+          <img
+            src={BASE_URL + ASSETS + LOGO_NO_MOON}
+            className="top-bar-logo"
+            alt=""
+          />
+          <CompanyName message={FELDSPAR} />
         </div>
         <div className="horizontal-flex">
           {!store.getLoggedIn && (
@@ -64,6 +69,13 @@ class TopBar extends Component {
           >
             <FaQuestionCircle />
           </Button>
+          <Link to="/showcase">
+            <Button className="showcase-button" variant="dark">
+              <div className="showcase-button-text">
+                Showcase <FaArrowRight />
+              </div>
+            </Button>
+          </Link>
         </div>
 
         <LoginModal />

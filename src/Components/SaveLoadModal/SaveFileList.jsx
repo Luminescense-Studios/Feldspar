@@ -5,7 +5,7 @@ import { FaLink, FaMinusCircle } from "react-icons/fa";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { VIEW_MODEL, HOST_URL } from "../../Constants";
 
-class CardList extends Component {
+class SaveFileList extends Component {
   constructor(props) {
     super(props);
 
@@ -33,7 +33,7 @@ class CardList extends Component {
     return (
       <div className="save-file-container">
         {this.props.fileList.map((item, iterator) => (
-          <div className="save-file-list-block" key={iterator}>
+          <div className="col-md-6 save-file-list-block" key={iterator}>
             <div
               floor-model-url={item.url}
               file-name={item.name}
@@ -43,12 +43,12 @@ class CardList extends Component {
               className="save-file-list-item"
             >
               <div className="save-file-name">{item.name}</div>
-              <div>
+              <div className="save-file-button-container">
                 <CopyToClipboard
                   text={HOST_URL + VIEW_MODEL + item.url}
                   onCopy={this.handleShare}
                 >
-                  <Button variant="light">
+                  <Button variant="light" className="copy-to-clipboard-button">
                     <FaLink />
                   </Button>
                 </CopyToClipboard>
@@ -56,6 +56,7 @@ class CardList extends Component {
                   _id={item._id}
                   onClick={this.handleRemove}
                   variant="light"
+                  className="remove-button"
                 >
                   <FaMinusCircle />
                 </Button>
@@ -68,4 +69,4 @@ class CardList extends Component {
   }
 }
 
-export default CardList;
+export default SaveFileList;

@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import Homepage from "./Components/Homepage.jsx";
+import Showcase from "./Components/Showcase/Showcase.jsx";
 import { inject, observer } from "mobx-react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
@@ -14,12 +15,14 @@ class App extends Component {
     return (
       <Router>
         <Switch>
-          <Route path="/about"></Route>
-          <Route path="/view/:viewKey" component={Homepage} />
+          <Route path="/showcase">
+            <Showcase />
+          </Route>{" "}
+          <Route path="/view/:viewKey" component={Homepage} />{" "}
           <Route path="/">
             <Homepage />
-          </Route>
-        </Switch>
+          </Route>{" "}
+        </Switch>{" "}
       </Router>
     );
   }

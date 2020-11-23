@@ -81,12 +81,12 @@ class SaveModal extends Component {
       isError: false,
       overwrite: "Overwrite",
     });
-    $(".save-file-list-item").css("border-color", "#ffffff");
-    event.currentTarget.style.borderColor = "#5a6268";
+    $(".save-file-list-item").css("background-color", "#fafafa");
+    event.currentTarget.style.backgroundColor = "#e6e6e6";
   }
 
   handleInputChange(event) {
-    $(".save-file-list-item").css("border-color", "#ffffff");
+    $(".save-file-list-item").css("background-color", "#fafafa");
     this.setState({
       fileName: event.target.value,
       fileNameTemp: event.target.value,
@@ -192,7 +192,7 @@ class SaveModal extends Component {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className="login-form-space">
+          <div className="save-file-display-space">
             <SaveFileList
               clickFunc={this.handleClick}
               removeFunc={this.handleRemove}

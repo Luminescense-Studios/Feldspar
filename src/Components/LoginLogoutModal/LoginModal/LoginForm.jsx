@@ -72,6 +72,7 @@ class LoginForm extends Component {
         this.props.store.setAccessToken(res.data.accessToken);
         this.props.store.setRefreshToken(res.data.refreshToken);
         this.props.store.setLoggedIn(true);
+        this.props.store.setLoggedInWithApp("Feldspar");
 
         this.props.store.setLoginModal(false);
       } catch (e) {

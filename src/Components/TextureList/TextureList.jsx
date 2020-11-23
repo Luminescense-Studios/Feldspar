@@ -13,6 +13,7 @@ export default class TextureList extends Component {
             texture-url={BASE_URL + ASSETS + texture.url}
             texture-stretch={texture.stretch.toString()}
             texture-scale={texture.scale}
+            texture-name={texture.name}
           >
             <img
               className="thumbnail"

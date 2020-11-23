@@ -6,16 +6,17 @@ import {
 
 class LuminescenceStore {
   @observable loggedIn = false;
+  @observable loggedInWithApp = "";
   @observable username = "";
   @observable accessToken = "";
   @observable refreshToken = "";
+  @observable config = {};
   @observable loginModal = false;
   @observable logoutModal = false;
   @observable infoModal = false;
   @observable addClickListener = false;
   @observable saveFileModal = false;
   @observable loadFileModal = false;
-
 
   //LoggedIn---------------------------------------------
   @action setLoggedIn = (login) => {
@@ -24,6 +25,15 @@ class LuminescenceStore {
 
   @computed get getLoggedIn() {
     return this.loggedIn
+  }
+
+  //LoggedInWithApp---------------------------------------------
+  @action setLoggedInWithApp = (login) => {
+    this.loggedInWithApp = login
+  }
+
+  @computed get getLoggedInWithApp() {
+    return this.loggedInWithApp
   }
 
   //Username--------------------------------------------
@@ -51,6 +61,13 @@ class LuminescenceStore {
 
   @computed get getRefreshToken() {
     return this.refreshToken
+  }
+
+  //Config--------------------------------------------
+  @computed get getConfig() {
+    return {
+      headers: { Authorization: `Bearer ${this.accessToken}` },
+    };
   }
 
   //LoginModal---------------------------------------------

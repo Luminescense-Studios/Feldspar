@@ -1,10 +1,15 @@
 import "../App.css";
 import React, { Component } from "react";
 import Button from "react-bootstrap/Button";
-import { FaTrashAlt } from "react-icons/fa";
+import { FaTrashAlt, FaClone } from "react-icons/fa";
+import { BASE_URL, ASSETS, MIRROR_ITEM_ICON } from "../Constants.js";
+import { inject, observer } from "mobx-react";
 
-export default class ContextMenu extends Component {
+@inject("store")
+@observer
+class ContextMenu extends Component {
   render() {
+    // const { store } = this.props;
     return (
       <div>
         <span id="context-menu-name" className="lead"></span>
@@ -19,6 +24,34 @@ export default class ContextMenu extends Component {
             <FaTrashAlt />
           </span>
           <span className="text-centre">Delete Item</span>
+        </Button>
+        <Button
+          variant="danger"
+          size="sm"
+          block
+          id="context-menu-mirrorize"
+          className="outline-button"
+        >
+          <span className="icon-centre-svg">
+            <img
+              className="icon-svg"
+              src={BASE_URL + ASSETS + MIRROR_ITEM_ICON}
+              alt=""
+            />
+          </span>
+          <span className="text-centre">Mirror</span>
+        </Button>
+        <Button
+          variant="danger"
+          size="sm"
+          block
+          id="context-menu-duplicate"
+          className="outline-button add-item"
+        >
+          <span className="icon-centre-svg">
+            <FaClone />
+          </span>
+          <span className="text-centre">Duplicate</span>
         </Button>
         <div className="panel">
           <div className="panel-heading">Adjust Size</div>
@@ -43,7 +76,7 @@ export default class ContextMenu extends Component {
                   id="item-depth"
                 ></input>
               </div>
-              <div className="form-group">
+              <div className="form-group" id="item-height-div">
                 <label className="control-label">Height</label>
 
                 <input
@@ -73,3 +106,5 @@ export default class ContextMenu extends Component {
     );
   }
 }
+
+export default ContextMenu;

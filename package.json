@@ -5,6 +5,7 @@
   "dependencies": {
     "@babel/core": "7.9.0",
     "@babel/plugin-proposal-decorators": "^7.10.5",
+    "@seregpie/three.text-sprite": "^2.0.0",
     "@svgr/webpack": "4.3.3",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
@@ -57,6 +58,9 @@
     "react-copy-to-clipboard": "^5.0.2",
     "react-dev-utils": "^10.2.1",
     "react-dom": "^16.13.1",
+    "react-facebook-login": "^4.1.1",
+    "react-ga": "^3.2.1",
+    "react-google-login": "^5.1.23",
     "react-icons": "^3.10.0",
     "react-router-dom": "^5.2.0",
     "resolve": "1.15.0",

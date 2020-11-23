@@ -29,13 +29,36 @@ class FloorTextureList extends Component {
     this.getUserList = this.getUserList.bind(this);
     this.getFreeList = this.getFreeList.bind(this);
     this.clearList = this.clearList.bind(this);
+    this.clearListWood = this.clearListWood.bind(this);
+    this.clearListMarble = this.clearListMarble.bind(this);
+    this.clearListTile = this.clearListTile.bind(this);
   }
 
   clearList() {
+    this.clearListWood();
+    this.clearListMarble();
+    this.clearListTile();
+  }
+
+  clearListWood() {
     if (this.state.isLoggedIn === false) {
       this.setState({
         textureListWood: [],
+      });
+    }
+  }
+
+  clearListMarble() {
+    if (this.state.isLoggedIn === false) {
+      this.setState({
         textureListMarble: [],
+      });
+    }
+  }
+
+  clearListTile() {
+    if (this.state.isLoggedIn === false) {
+      this.setState({
         textureListTile: [],
       });
     }
@@ -47,10 +70,7 @@ class FloorTextureList extends Component {
       let textureCategoryFloorMarble = { category: FLOOR_MARBLE_CATEGORY };
       let textureCategoryFloorTile = { category: FLOOR_TILE_CATEGORY };
 
-      let token = this.props.store.getAccessToken;
-      let config = {
-        headers: { Authorization: `Bearer ${token}` },
-      };
+      let config = this.props.store.getConfig;
 
       axios
         .post(
@@ -63,12 +83,12 @@ class FloorTextureList extends Component {
           Promise.all(
             textureListTemp.map(async (textureId) => {
               let res = await axios.get(BASE_URL + TEXTURES + FIND + textureId);
-              let temp = [...this.state.textureListWood];
-              temp.push(res.data);
-              this.setState({ textureListWood: temp });
               return res.data;
             })
-          );
+          ).then((results) => {
+            this.clearListWood();
+            this.setState({ textureListWood: results });
+          });
         });
 
       axios
@@ -82,12 +102,12 @@ class FloorTextureList extends Component {
           Promise.all(
             textureListTemp.map(async (textureId) => {
               let res = await axios.get(BASE_URL + TEXTURES + FIND + textureId);
-              let temp = [...this.state.textureListMarble];
-              temp.push(res.data);
-              this.setState({ textureListMarble: temp });
               return res.data;
             })
-          );
+          ).then((results) => {
+            this.clearListMarble();
+            this.setState({ textureListMarble: results });
+          });
         });
 
       axios
@@ -101,12 +121,12 @@ class FloorTextureList extends Component {
           Promise.all(
             textureListTemp.map(async (textureId) => {
               let res = await axios.get(BASE_URL + TEXTURES + FIND + textureId);
-              let temp = [...this.state.textureListTile];
-              temp.push(res.data);
-              this.setState({ textureListTile: temp });
               return res.data;
             })
-          );
+          ).then((results) => {
+            this.clearListTile();
+            this.setState({ textureListTile: results });
+          });
         });
     }
   }
@@ -127,12 +147,12 @@ class FloorTextureList extends Component {
           Promise.all(
             textureListTemp.map(async (textureId) => {
               let res = await axios.get(BASE_URL + TEXTURES + FIND + textureId);
-              let temp = [...this.state.textureListWood];
-              temp.push(res.data);
-              this.setState({ textureListWood: temp });
               return res.data;
             })
-          );
+          ).then((results) => {
+            this.clearListWood();
+            this.setState({ textureListWood: results });
+          });
         });
 
       axios
@@ -145,12 +165,12 @@ class FloorTextureList extends Component {
           Promise.all(
             textureListTemp.map(async (textureId) => {
               let res = await axios.get(BASE_URL + TEXTURES + FIND + textureId);
-              let temp = [...this.state.textureListMarble];
-              temp.push(res.data);
-              this.setState({ textureListMarble: temp });
               return res.data;
             })
-          );
+          ).then((results) => {
+            this.clearListMarble();
+            this.setState({ textureListMarble: results });
+          });
         });
 
       axios
@@ -163,12 +183,12 @@ class FloorTextureList extends Component {
           Promise.all(
             textureListTemp.map(async (textureId) => {
               let res = await axios.get(BASE_URL + TEXTURES + FIND + textureId);
-              let temp = [...this.state.textureListTile];
-              temp.push(res.data);
-              this.setState({ textureListTile: temp });
               return res.data;
             })
-          );
+          ).then((results) => {
+            this.clearListTile();
+            this.setState({ textureListTile: results });
+          });
         });
     }
   }

@@ -5,6 +5,8 @@ import Modal from "react-bootstrap/Modal";
 import { Tabs, Tab } from "react-bootstrap";
 import LoginForm from "./LoginForm.jsx";
 import SignupForm from "./SignupForm.jsx";
+import LoginWithGoogle from "./LoginWithGoogle/LoginWithGoogle.jsx";
+// import LoginWithFacebook from "./LoginWithFacebook/LoginWithFacebook.jsx";
 
 @inject("store")
 @observer
@@ -21,6 +23,8 @@ class LoginModal extends Component {
     this.props.store.setLoginModal(false);
   }
 
+  componentDidMount() {}
+
   render() {
     const { store } = this.props;
     return (
@@ -33,6 +37,8 @@ class LoginModal extends Component {
       >
         <Modal.Body>
           <div className="login-form-space">
+            <LoginWithGoogle />
+            {/* <LoginWithFacebook /> */}
             <Tabs
               variant="pills"
               activeKey={this.state.key}

@@ -5,42 +5,17 @@ import axios from "axios";
 import { BP3D } from "../engine/blueprint3d.js";
 import { INIT_STRUCTURE, NEW_STRUCTURE } from "../Structures.js";
 import { BASE_URL, ASSETS } from "../Constants.js";
-import Button from "react-bootstrap/Button";
-import {
-  FaSearchMinus,
-  FaSearchPlus,
-  FaHome,
-  FaArrowUp,
-  FaArrowDown,
-  FaArrowLeft,
-  FaArrowRight,
-  FaChevronRight,
-  FaArrowsAlt,
-  FaPencilAlt,
-  FaTrashAlt,
-  FaPencilRuler,
-  FaDraftingCompass,
-  FaPlus,
-  FaRedo,
-} from "react-icons/fa";
-import { Tabs, Tab, OverlayTrigger, Tooltip } from "react-bootstrap";
-import CardListSofa from "./AddItems/CardListSofa.jsx";
-import CardListChair from "./AddItems/CardListChair.jsx";
-import CardListBed from "./AddItems/CardListBed.jsx";
-import CardListRug from "./AddItems/CardListRug.jsx";
-import CardListMisc from "./AddItems/CardListMisc.jsx";
-import CardListKitchen from "./AddItems/CardListKitchen.jsx";
-import CardListArch from "./AddItems/CardListArch.jsx";
-import CardListBath from "./AddItems/CardListBath.jsx";
-import CardListLight from "./AddItems/CardListLight.jsx";
+import CameraButtons from "./ControlButtons/CameraButtons.jsx";
+import FloorplannerButtons from "./ControlButtons/FloorplannerButtons.jsx";
+import Sidebar from "./Sidebar/Sidebar.jsx";
+import ItemsTab from "./AddItems/ItemsTab.jsx";
 import FloorTextureList from "./TextureList/FloorTextureList.jsx";
 import WallTextureList from "./TextureList/WallTextureList.jsx";
+import AutoSavingAlert from "./AutoSavingAlert.jsx";
 import ContextMenu from "./ContextMenu.jsx";
-import SaveButton from "./SaveLoadModal/SaveFile/SaveButton.jsx";
-import LoadButton from "./SaveLoadModal/LoadFile/LoadButton.jsx";
 import SaveModal from "./SaveLoadModal/SaveFile/SaveModal.jsx";
 import LoadModal from "./SaveLoadModal/LoadFile/LoadModal.jsx";
-
+import {Event} from "../GATracker/index";
 import { inject, observer } from "mobx-react";
 
 @inject("store")
@@ -49,7 +24,6 @@ class BlueprintPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      key: "sofa",
       blueprint3d: {},
       addClickListener: false,
       currentStateName: "Design",
@@ -65,21 +39,27 @@ class BlueprintPage extends Component {
     this.initItems = this.initItems.bind(this);
     this.saveFile = this.saveFile.bind(this);
     this.loadFile = this.loadFile.bind(this);
+    this.saveStructureLocal = this.saveStructureLocal.bind(this);
   }
 
   saveFile() {
     if (this.state.blueprint3d.model !== undefined) {
       var data = this.state.blueprint3d.model.exportSerialized();
-      // var a = window.document.createElement("a");
+      this.saveStructureLocal();
       var blob = new Blob([data], {
         type: "text",
       });
       this.setState({ blob: blob });
-      // a.href = window.URL.createObjectURL(blob);
-      // a.download = "design.blueprint3d";
-      // document.body.appendChild(a);
-      // a.click();
-      // document.body.removeChild(a);
+    }
+  }
+
+  saveStructureLocal() {
+    if (this.state.blueprint3d.model !== undefined) {
+      $("#auto-saving-alert").show();
+      $("#auto-saving-alert").delay(2000).fadeOut();
+      var data = this.state.blueprint3d.model.exportSerialized();
+      // console.log("saving to local...");
+      localStorage.setItem("modelStructure", data);
     }
   }
 
@@ -210,10 +190,17 @@ class BlueprintPage extends Component {
 
     function init() {
       $("#context-menu-delete").click(function (event) {
+        Event("ITEM", "ITEM REMOVED", selectedItem.metadata.itemName);
         selectedItem.remove();
       });
       $("#context-menu-delete").on("touchend", function (event) {
+        Event("ITEM", "ITEM REMOVED", selectedItem.metadata.itemName);
         selectedItem.remove();
+      });
+
+      $("#context-menu-mirrorize").click(function (event) {
+        Event("ITEM", "ITEM MIRRORIZED", selectedItem.metadata.itemName);
+        mirrorize();
       });
 
       three.itemSelectedCallbacks.add(itemSelected);
@@ -240,18 +227,37 @@ class BlueprintPage extends Component {
 
       $("#context-menu-name").text(item.metadata.itemName);
 
+      $("#context-menu-duplicate").attr(
+        "modelurl",
+        selectedItem.metadata.modelUrl
+      );
+      $("#context-menu-duplicate").attr(
+        "modeltype",
+        selectedItem.metadata.itemType
+      );
+      $("#context-menu-duplicate").attr(
+        "modelname",
+        selectedItem.metadata.itemName
+      );
+      // console.log(selectedItem.metadata.itemType)
+
       $("#item-width").val(cmToIn(selectedItem.getWidth()).toFixed(0));
       $("#item-height").val(cmToIn(selectedItem.getHeight()).toFixed(0));
       $("#item-depth").val(cmToIn(selectedItem.getDepth()).toFixed(0));
       $("#item-elevation").val(cmToIn(selectedItem.getElevation()).toFixed(0));
 
-      $("texture-context-container").show();
+      // $("texture-context-container").show();
       $("#context-menu").show();
 
       if (selectedItem.isElevationAdjustable()) {
         $("#item-elevation-div").show();
       } else {
         $("#item-elevation-div").hide();
+      }
+      if (selectedItem.isHeightAdjustable()) {
+        $("#item-height-div").show();
+      } else {
+        $("#item-height-div").hide();
       }
 
       $("#fixed").prop("checked", item.fixed);
@@ -263,6 +269,22 @@ class BlueprintPage extends Component {
           inToCm($("#item-height").val()),
           inToCm($("#item-width").val()),
           inToCm($("#item-depth").val())
+        );
+      }
+    }
+
+    function mirrorize() {
+      if (selectedItem !== null) {
+        selectedItem.mirrorize(
+          inToCm($("#item-height").val()),
+          inToCm($("#item-width").val()),
+          inToCm($("#item-depth").val())
+        );
+        $("#item-width").val(cmToIn(selectedItem.getWidth()).toFixed(0));
+        $("#item-height").val(cmToIn(selectedItem.getHeight()).toFixed(0));
+        $("#item-depth").val(cmToIn(selectedItem.getDepth()).toFixed(0));
+        $("#item-elevation").val(
+          cmToIn(selectedItem.getElevation()).toFixed(0)
         );
       }
     }
@@ -280,7 +302,7 @@ class BlueprintPage extends Component {
 
     function itemUnselected() {
       selectedItem = null;
-      $("texture-context-container").hide();
+      // $("texture-context-container").hide();
       $("#context-menu").hide();
     }
 
@@ -373,7 +395,7 @@ class BlueprintPage extends Component {
 
       $("#update-floorplan").click(floorplanUpdate);
       function reset() {
-        $("texture-context-container").hide();
+        // $("texture-context-container").hide();
         $("#wallTextures").hide();
         $("#floorTexturesDiv").hide();
       }
@@ -504,10 +526,38 @@ class BlueprintPage extends Component {
     $("#add-items")
       .find(".add-item")
       .click(function (e) {
-        var modelUrl = $(this).attr("model-url");
-        var itemType = parseInt($(this).attr("model-type"));
+        let itemName = $(this).attr("modelname")
+        Event("ITEM", "ITEM ADDED", itemName);
+        var modelUrl = $(this).attr("modelurl");
+        var itemType = parseInt($(this).attr("modeltype"));
         var metadata = {
-          itemName: $(this).attr("model-name"),
+          itemName: $(this).attr("modelname"),
+          resizable: true,
+          modelUrl: modelUrl,
+          itemType: itemType,
+        };
+
+        blueprint3d.model.scene.addItem(itemType, modelUrl, metadata);
+        setCurrentState(
+          {
+            div: $("#viewer"),
+            tab: $("#design_tab"),
+            name: "Design",
+          },
+          false
+        );
+      });
+
+    $("#context-menu").find(".add-item").off("click");
+    $("#context-menu")
+      .find(".add-item")
+      .click(function (e) {
+        let itemName = $(this).attr("modelname")
+        Event("ITEM", "ITEM ADDED", itemName);
+        var modelUrl = $(this).attr("modelurl");
+        var itemType = parseInt($(this).attr("modeltype"));
+        var metadata = {
+          itemName: $(this).attr("modelname"),
           resizable: true,
           modelUrl: modelUrl,
           itemType: itemType,
@@ -538,6 +588,8 @@ class BlueprintPage extends Component {
     function initTextureSelectors() {
       $(".texture-select-thumbnail").off("click");
       $(".texture-select-thumbnail").click(function (e) {
+        var textureName = $(this).attr("texture-name");
+        Event("TEXTURE", "TEXTURE ADDED", textureName);
         var textureUrl = $(this).attr("texture-url");
         var textureStretch = $(this).attr("texture-stretch") === "true";
         var textureScale = parseInt($(this).attr("texture-scale"));
@@ -568,9 +620,26 @@ class BlueprintPage extends Component {
       currentTarget = halfEdge;
       currentTarget.drawOutline();
       $("#floorTexturesDiv").hide();
-      $("texture-context-container").show();
+      // $("texture-context-container").show();
       $("#wallTextures").show();
+      console.log(currentTarget.getVisible());
+      if (currentTarget.getVisible()) {
+        $("#wall-texture-panel").show();
+      } else {
+        $("#wall-texture-panel").hide();
+      }
+      $("#invisible").prop("checked", !currentTarget.wall.visible);
       initTextureSelectors();
+
+      $("#invisible").click(function () {
+        var checked = $(this).prop("checked");
+        currentTarget.setVisible(!checked);
+        if (!checked) {
+          $("#wall-texture-panel").show();
+        } else {
+          $("#wall-texture-panel").hide();
+        }
+      });
     }
 
     function floorClicked(room) {
@@ -580,7 +649,7 @@ class BlueprintPage extends Component {
       currentTarget = room;
       currentTarget.drawOutline();
       $("#wallTextures").hide();
-      $("texture-context-container").show();
+      // $("texture-context-container").show();
       $("#floorTexturesDiv").show();
       initTextureSelectors();
     }
@@ -589,7 +658,7 @@ class BlueprintPage extends Component {
       if (currentTarget !== undefined && currentTarget !== null) {
         currentTarget.removeOutline();
       }
-      $("texture-context-container").hide();
+      // $("texture-context-container").hide();
       $("#wallTextures").hide();
       $("#floorTexturesDiv").hide();
       initTextureSelectors();
@@ -598,7 +667,7 @@ class BlueprintPage extends Component {
     init();
   }
 
-  async engine(viewKey) {
+  async engine(viewKey, modelData) {
     /*
      * Floorplanner controls
      */
@@ -618,8 +687,8 @@ class BlueprintPage extends Component {
       var scope = this;
 
       function init() {
-        $(window).resize(scope.handleWindowResize);
-        scope.handleWindowResize();
+        // $(window).resize(scope.handleWindowResize);
+        // scope.handleWindowResize2();
 
         // mode buttons
         scope.floorplanner.modeResetCallbacks.add(function (mode) {
@@ -636,7 +705,7 @@ class BlueprintPage extends Component {
 
           if (mode === BP3D.Floorplanner.floorplannerModes.DRAW) {
             $("#draw-walls-hint").show();
-            scope.handleWindowResize();
+            // scope.handleWindowResize();
           } else {
             $("#draw-walls-hint").hide();
           }
@@ -673,13 +742,24 @@ class BlueprintPage extends Component {
       };
 
       this.handleWindowResize = function () {
-        $(canvasWrapper).height(
-          window.innerHeight - $(canvasWrapper).offset().top
-        );
-        scope.floorplanner.resizeView();
+        if ($(canvasWrapper) !== undefined) {
+          $(canvasWrapper).height(
+            window.innerHeight - $(canvasWrapper).offset().top
+          );
+          scope.floorplanner.resizeView();
+        }
+
+        init();
       };
 
-      init();
+      this.handleWindowResize2 = function () {
+        if ($(canvasWrapper) !== undefined) {
+          $(canvasWrapper).height(
+            window.innerHeight - $(canvasWrapper).offset().top
+          );
+          scope.floorplanner.resizeView();
+        }
+      };
     };
 
     var mainControls = function (blueprint3d) {
@@ -687,61 +767,9 @@ class BlueprintPage extends Component {
         blueprint3d.model.loadSerialized(NEW_STRUCTURE);
       }
 
-      // var loadDesign = async (event) => {
-      //   let name = $("#loadFile").attr('name');
-      //   let file1 = await axios.get(
-      //     "http://localhost:8001/assets/" + name
-      //   );
-      //   // var file1 = event.target.files[0];
-      //   var reader = new FileReader();
-      //   reader.onload = function () {
-      //     var data = reader.result;
-      //     blueprint3d.model.loadSerialized(data);
-      //   };
-      //   reader.readAsText(file1);
-      //   $("#loadFile").replaceWith($("#loadFile").val("").clone(true));
-
-      //   try {
-      //     let uri = $("#loadFile").attr("uri");
-      //     console.log("uri: " + uri);
-      //     if (uri !== "") {
-      //       let res = await axios.get("http://localhost:8001/assets/" + uri);
-      //       blueprint3d.model.loadSerialized(JSON.stringify(res.data));
-      //     }
-      //   } catch (e) {
-      //     console.log(e);
-      //   }
-      // };
-
-      // function saveDesign() {
-      //   var data = blueprint3d.model.exportSerialized();
-      //   var a = window.document.createElement("a");
-      //   var blob = new Blob([data], {
-      //     type: "text",
-      //   });
-      //   // setBlob(blob);
-      //   a.href = window.URL.createObjectURL(blob);
-      //   a.download = "design";
-      //   document.body.appendChild(a);
-      //   a.click();
-      //   document.body.removeChild(a);
-      // }
-
-      // function setBlob(blob) {
-      //   setNewBlob(blob);
-      // }
-
       function init() {
         $("#new").click(newDesign);
         // $("#new").on("touchend", newDesign);
-
-        // $("#loadFile").click(loadDesign);
-        // $("#loadFileLabel").on("touchend", function () {
-        //   $("#loadFile").trigger("click");
-        // });
-
-        // $("#saveFile").click(saveDesign);
-        // $("#saveFile").on("touchend", saveDesign);
       }
 
       init();
@@ -772,47 +800,26 @@ class BlueprintPage extends Component {
 
     // This serialization format needs work
     // Load a simple rectangle room
-    if (viewKey === "") {
+    // console.log(modelData)
+    if (viewKey === "" && modelData === null) {
       this.state.blueprint3d.model.loadSerialized(INIT_STRUCTURE);
+    } else if (
+      viewKey === "" &&
+      modelData !== null &&
+      modelData !== "" &&
+      modelData !== undefined
+    ) {
+      // console.log(modelData)
+      this.state.blueprint3d.model.loadSerialized(modelData);
     } else {
       try {
         let res = await axios.get(BASE_URL + ASSETS + viewKey);
-        // let file1 = new Blob(res)
-        // var blueprint3d = this.state.blueprint3d;
-        // var reader = new FileReader();
-        //   reader.onload = function () {
-        //     var data = reader.result;
-        //     blueprint3d.model.loadSerialized(data);
-        //   };
-        //   reader.readAsText(file1);
         this.state.blueprint3d.model.loadSerialized(JSON.stringify(res.data));
       } catch (e) {
         console.log(e);
         this.state.blueprint3d.model.loadSerialized(INIT_STRUCTURE);
       }
     }
-  }
-
-  componentDidMount() {
-    // const { store } = this.props;
-    var opts = {
-      floorplannerElement: "floorplanner-canvas",
-      threeElement: "#viewer",
-      threeCanvasElement: "three-canvas",
-      textureDir: "rooms/textures/",
-      widget: false,
-    };
-    this.setState({ blueprint3d: new BP3D.Blueprint3d(opts) }, () => {
-      if (
-        this.props.viewKey !== undefined &&
-        this.props.viewKey !== null &&
-        this.props.viewKey !== ""
-      ) {
-        this.engine(this.props.viewKey);
-      } else {
-        this.engine("");
-      }
-    });
   }
 
   setDesignState(newState, firstTime) {
@@ -836,7 +843,7 @@ class BlueprintPage extends Component {
     handleWindowResize();
 
     function reset() {
-      $("texture-context-container").hide();
+      // $("texture-context-container").hide();
       $("#wallTextures").hide();
       $("#floorTexturesDiv").hide();
     }
@@ -845,6 +852,39 @@ class BlueprintPage extends Component {
     this.setState({ currentStateName: "Design" });
 
     //change mobx state-active-tab
+  }
+
+  componentDidMount() {
+    // const { store } = this.props;
+    var opts = {
+      floorplannerElement: "floorplanner-canvas",
+      threeElement: "#viewer",
+      threeCanvasElement: "three-canvas",
+      textureDir: "rooms/textures/",
+      widget: false,
+    };
+
+    // var blueprint3d = cookie.load('blueprint3d');
+    var modelData = localStorage.getItem("modelStructure");
+    // console.log(modelData);
+    // console.log(blueprint3d)
+    if (
+      this.props.viewKey !== undefined &&
+      this.props.viewKey !== null &&
+      this.props.viewKey !== ""
+    ) {
+      this.setState({ blueprint3d: new BP3D.Blueprint3d(opts) }, () => {
+        this.engine(this.props.viewKey, "");
+      });
+    } else {
+      this.setState({ blueprint3d: new BP3D.Blueprint3d(opts) }, () => {
+        // if (blueprint3d !== undefined) {
+        //   console.log("loaded from cookie");
+        // }
+        this.engine("", modelData);
+        this.timerID = setInterval(() => this.saveStructureLocal(), 10000);
+      });
+    }
   }
 
   componentDidUpdate(prevProps, prevState, snapShot) {
@@ -858,89 +898,21 @@ class BlueprintPage extends Component {
     }
   }
 
+  componentWillUnmount() {
+    clearInterval(this.timerID);
+    console.log("unmounting");
+  }
+
   render() {
     const { store } = this.props;
     return (
       <div className="horizontal-container">
         {/* Left Column */}
-        <div className="sidebar">
-          {/* Main Navigation */}
-          <div>
-            <ul className="nav nav-sidebar vertical-container">
-              <li id="floorplan_tab">
-                <OverlayTrigger
-                  placement="right"
-                  overlay={<Tooltip>Edit Floorplan</Tooltip>}
-                >
-                  <div>
-                    <FaPencilRuler />
-                  </div>
-                </OverlayTrigger>
-              </li>
-              <li id="design_tab">
-                <OverlayTrigger
-                  placement="right"
-                  overlay={<Tooltip>Design</Tooltip>}
-                >
-                  <div>
-                    <FaDraftingCompass />
-                  </div>
-                </OverlayTrigger>
-              </li>
-              <li id="items_tab">
-                <OverlayTrigger
-                  placement="right"
-                  overlay={<Tooltip>Add Items</Tooltip>}
-                >
-                  <div>
-                    <FaPlus />
-                  </div>
-                </OverlayTrigger>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <ul className="nav nav-sidebar vertical-container">
-              <li>
-                <OverlayTrigger
-                  placement="right"
-                  overlay={<Tooltip>New Plan</Tooltip>}
-                >
-                  <div id="new">
-                    <FaRedo />
-                  </div>
-                </OverlayTrigger>
-              </li>
-              {store.getLoggedIn && (
-                <li>
-                  <OverlayTrigger
-                    placement="right"
-                    overlay={<Tooltip>Save</Tooltip>}
-                  >
-                    <div>
-                      <SaveButton />
-                    </div>
-                  </OverlayTrigger>
-                </li>
-              )}
-              {store.getLoggedIn && (
-                <li>
-                  <OverlayTrigger
-                    placement="right"
-                    overlay={<Tooltip>Load</Tooltip>}
-                  >
-                    <div>
-                      <LoadButton />
-                    </div>
-                  </OverlayTrigger>
-                </li>
-              )}
-            </ul>
-          </div>
-          <SaveModal blob={this.state.blob} clickFunc={this.saveFile} />
-          <LoadModal clickFunc={this.loadFile} />
-        </div>
+        <Sidebar />
+        {/* End Left Column */}
 
+        <SaveModal blob={this.state.blob} clickFunc={this.saveFile} />
+        <LoadModal clickFunc={this.loadFile} />
         <div id="texture-context-container">
           {/* Context Menu */}
           <div id="context-menu">
@@ -956,73 +928,16 @@ class BlueprintPage extends Component {
             <WallTextureList loggedIn={store.getLoggedIn} />
           </div>
         </div>
-        {/* End Left Column */}
 
         {/* Right Column */}
         <div className="right-container">
+          {/* Auto-Saving Alert */}
+          <div id="auto-saving-alert" style={{ display: "none" }}>
+            <AutoSavingAlert />
+          </div>
           {/* 3D Viewer */}
           <div id="viewer">
-            <div id="camera-controls">
-              <Button
-                variant="danger"
-                size="sm"
-                id="zoom-out"
-                className={"basic-button"}
-              >
-                <FaSearchMinus />
-              </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                id="reset-view"
-                className={"basic-button"}
-              >
-                <FaHome />
-              </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                id="zoom-in"
-                className={"basic-button"}
-              >
-                <FaSearchPlus />
-              </Button>
-
-              <Button
-                variant="danger"
-                size="sm"
-                id="move-left"
-                className={"basic-button"}
-              >
-                <FaArrowLeft />
-              </Button>
-              <div className={"vertical-controls-container"}>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  id="move-up"
-                  className={"basic-button"}
-                >
-                  <FaArrowUp />
-                </Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  id="move-down"
-                  className={"basic-button"}
-                >
-                  <FaArrowDown />
-                </Button>
-              </div>
-              <Button
-                variant="danger"
-                size="sm"
-                id="move-right"
-                className={"basic-button"}
-              >
-                <FaArrowRight />
-              </Button>
-            </div>
+            <CameraButtons />
 
             <div id="loading-modal">
               <h1>Loading...</h1>
@@ -1032,96 +947,13 @@ class BlueprintPage extends Component {
           {/*2D Floorplanner */}
           <div id="floorplanner">
             <canvas id="floorplanner-canvas"></canvas>
-            <div id="floorplanner-controls">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="icon-text-button"
-                id="move"
-              >
-                <span className="icon-centre">
-                  <FaArrowsAlt />
-                </span>
-                <span className="text-centre">Move Walls</span>
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="icon-text-button"
-                id="draw"
-              >
-                <span className="icon-centre">
-                  <FaPencilAlt />
-                </span>
-                <span className="text-centre">Draw Walls</span>
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="icon-text-button"
-                id="delete"
-              >
-                <span className="icon-centre">
-                  <FaTrashAlt />
-                </span>
-                <span className="text-centre">Delete Walls</span>
-              </Button>
-
-              <Button
-                variant="danger"
-                size="sm"
-                className="icon-text-button"
-                id="update-floorplan"
-              >
-                <span className="text-centre">Done</span>
-                <span className="icon-centre">
-                  <FaChevronRight />
-                </span>
-              </Button>
-            </div>
+            <FloorplannerButtons />
             <div id="draw-walls-hint">
               Press the "Esc" key to stop drawing walls
             </div>
           </div>
           {/* Add Items */}
-          <div id="add-items">
-            <Tabs
-              variant="pills"
-              id="controlled-tab-example"
-              activeKey={this.state.key}
-              onSelect={(k) => {
-                this.setState({ key: k });
-              }}
-            >
-              <Tab eventKey="sofa" title="Sofas">
-                <CardListSofa loggedIn={store.getLoggedIn} />
-              </Tab>
-              <Tab eventKey="chair" title="Chairs">
-                <CardListChair loggedIn={store.getLoggedIn} />
-              </Tab>
-              <Tab eventKey="bed" title="Beds">
-                <CardListBed loggedIn={store.getLoggedIn} />
-              </Tab>
-              <Tab eventKey="rug" title="Rugs">
-                <CardListRug loggedIn={store.getLoggedIn} />
-              </Tab>
-              <Tab eventKey="misc" title="Misc">
-                <CardListMisc loggedIn={store.getLoggedIn} />
-              </Tab>
-              <Tab eventKey="bath" title="Bath">
-                <CardListBath loggedIn={store.getLoggedIn} />
-              </Tab>
-              <Tab eventKey="light" title="Lights">
-                <CardListLight loggedIn={store.getLoggedIn} />
-              </Tab>
-              <Tab eventKey="kitchen" title="Kitchen">
-                <CardListKitchen loggedIn={store.getLoggedIn} />
-              </Tab>
-              <Tab eventKey="arch" title="Architectural">
-                <CardListArch loggedIn={store.getLoggedIn} />
-              </Tab>
-            </Tabs>
-          </div>
+          <ItemsTab />
         </div>
         {/* End Right Column */}
       </div>

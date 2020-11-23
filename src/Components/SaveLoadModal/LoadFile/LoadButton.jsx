@@ -1,7 +1,7 @@
 import "../../../App.css";
 import React, { Component } from "react";
 import { inject, observer } from "mobx-react";
-import { FaUpload } from "react-icons/fa";
+import { FaDownload } from "react-icons/fa";
 
 @inject("store")
 @observer
@@ -23,7 +23,7 @@ class LoadButton extends Component {
         <div
           onClick={this.handleLoadFileShow}
         >
-          <FaUpload />
+          <FaDownload />
         </div>
       </div>
     );

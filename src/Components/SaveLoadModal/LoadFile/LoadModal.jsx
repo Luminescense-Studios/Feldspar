@@ -78,8 +78,8 @@ class LoadModal extends Component {
   handleClick(name, uri, event) {
     // console.log(uri);
     this.setState({ fileName: name, fileUri: uri, isError: false });
-    $(".save-file-list-item").css("border-color", "#ffffff");
-    event.currentTarget.style.borderColor = "#5a6268";
+    $(".save-file-list-item").css("background-color", "#fafafa");
+    event.currentTarget.style.backgroundColor = "#e6e6e6";
   }
 
   async updateSaveFileList() {
@@ -123,7 +123,7 @@ class LoadModal extends Component {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className="login-form-space">
+          <div className="save-file-display-space">
             <SaveFileList
               clickFunc={this.handleClick}
               removeFunc={this.handleRemove}

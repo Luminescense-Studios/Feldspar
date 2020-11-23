@@ -7,14 +7,14 @@ import {
   GET_FREE_RESOURCES,
   GET_RESOURCES,
   FIND,
-  LIGHT_CATEGORY,
 } from "../../Constants.js";
 import axios from "axios";
 import { inject, observer } from "mobx-react";
 
 @inject("store")
 @observer
-class CardListLight extends Component {
+class ItemCards extends Component {
+  _isMounted = false;
   constructor(props) {
     super(props);
     this.state = {
@@ -28,74 +28,85 @@ class CardListLight extends Component {
 
   clearList() {
     if (this.state.isLoggedIn === false) {
-      this.setState({
-        itemList: [],
-      });
+      if (this._isMounted) {
+        this.setState({
+          itemList: [],
+        });
+      }
     }
   }
 
   getUserList() {
     if (this.state.isLoggedIn) {
-      let lightCategory = { category: LIGHT_CATEGORY };
-
-      let token = this.props.store.getAccessToken;
-      let config = {
-        headers: { Authorization: `Bearer ${token}` },
-      };
+      let furnitureCategory = { category: this.props.category };
+      let config = this.props.store.getConfig;
 
       axios
-        .post(BASE_URL + RESOURCES + GET_RESOURCES, lightCategory, config)
+        .post(BASE_URL + RESOURCES + GET_RESOURCES, furnitureCategory, config)
         .then((res) => {
           let itemListTemp = res.data;
           Promise.all(
             itemListTemp.map(async (modelId) => {
               let res = await axios.get(BASE_URL + MODELS + FIND + modelId);
-              let temp = [...this.state.itemList];
-              temp.push(res.data);
-              this.setState({ itemList: temp });
               return res.data;
             })
-          );
+          ).then((results) => {
+            this.clearList();
+            if (this._isMounted) {
+              this.setState({ itemList: results });
+            }
+          });
         });
     }
   }
 
   getFreeList() {
     if (!this.state.isLoggedIn) {
-      let lightCategory = { category: LIGHT_CATEGORY };
+      let furnitureCategory = { category: this.props.category };
 
       axios
-        .post(BASE_URL + RESOURCES + GET_FREE_RESOURCES, lightCategory)
+        .post(BASE_URL + RESOURCES + GET_FREE_RESOURCES, furnitureCategory)
         .then((res) => {
           let itemListTemp = res.data;
           Promise.all(
             itemListTemp.map(async (modelId) => {
               let res = await axios.get(BASE_URL + MODELS + FIND + modelId);
-              let temp = [...this.state.itemList];
-              temp.push(res.data);
-              this.setState({ itemList: temp });
               return res.data;
             })
-          );
+          ).then((results) => {
+            this.clearList();
+            if (this._isMounted) {
+              this.setState({ itemList: results });
+            }
+          });
         });
     }
   }
 
   componentDidMount() {
+    this._isMounted = true;
     this.getFreeList();
   }
 
   componentDidUpdate(prevProps, prevState, snapShot) {
     if (this.props.store.getLoggedIn && prevState.isLoggedIn === false) {
-      this.setState({ isLoggedIn: true });
+      if (this._isMounted) {
+        this.setState({ isLoggedIn: true });
+      }
       this.clearList();
       this.getUserList();
     }
     if (this.props.store.getLoggedIn === false && prevState.isLoggedIn) {
-      this.setState({ isLoggedIn: false });
+      if (this._isMounted) {
+        this.setState({ isLoggedIn: false });
+      }
       this.clearList();
       this.getFreeList();
     }
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
   }
 
   render() {
@@ -107,4 +118,4 @@ class CardListLight extends Component {
   }
 }
 
-export default CardListLight;
+export default ItemCards;

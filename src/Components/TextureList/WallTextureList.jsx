@@ -21,21 +21,51 @@ class WallTextureList extends Component {
     super(props);
     this.state = {
       isLoggedIn: false,
-      textureList: [],
+      textureListMisc: [],
       textureListSolid: [],
       textureListTile: [],
+      isChecked: false,
     };
 
     this.getUserList = this.getUserList.bind(this);
     this.getFreeList = this.getFreeList.bind(this);
     this.clearList = this.clearList.bind(this);
+    this.clearListMisc = this.clearListMisc.bind(this);
+    this.clearListSolid = this.clearListSolid.bind(this);
+    this.clearListTile = this.clearListTile.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+  }
+
+  handleChange(event) {
+    // console.log(event.target.checked)
+    this.setState({ isChecked: event.target.checked });
   }
 
   clearList() {
+    this.clearListMisc();
+    this.clearListSolid();
+    this.clearListTile();
+  }
+
+  clearListMisc() {
     if (this.state.isLoggedIn === false) {
       this.setState({
-        textureList: [],
+        textureListMisc: [],
+      });
+    }
+  }
+
+  clearListSolid() {
+    if (this.state.isLoggedIn === false) {
+      this.setState({
         textureListSolid: [],
+      });
+    }
+  }
+
+  clearListTile() {
+    if (this.state.isLoggedIn === false) {
+      this.setState({
         textureListTile: [],
       });
     }
@@ -46,10 +76,8 @@ class WallTextureList extends Component {
       let textureCategory = { category: WALL_CATEGORY };
       let textureCategorySolid = { category: WALL_SOLID_CATEGORY };
       let textureCategoryTile = { category: WALL_TILE_CATEGORY };
-      let token = this.props.store.getAccessToken;
-      let config = {
-        headers: { Authorization: `Bearer ${token}` },
-      };
+
+      let config = this.props.store.getConfig;
 
       axios
         .post(BASE_URL + RESOURCES + GET_RESOURCES, textureCategory, config)
@@ -58,12 +86,12 @@ class WallTextureList extends Component {
           Promise.all(
             textureListTemp.map(async (textureId) => {
               let res = await axios.get(BASE_URL + TEXTURES + FIND + textureId);
-              let temp = [...this.state.textureList];
-              temp.push(res.data);
-              this.setState({ textureList: temp });
               return res.data;
             })
-          );
+          ).then((results) => {
+            this.clearListMisc();
+            this.setState({ textureListMisc: results });
+          });
         });
 
       axios
@@ -77,12 +105,12 @@ class WallTextureList extends Component {
           Promise.all(
             textureListTemp.map(async (textureId) => {
               let res = await axios.get(BASE_URL + TEXTURES + FIND + textureId);
-              let temp = [...this.state.textureListSolid];
-              temp.push(res.data);
-              this.setState({ textureListSolid: temp });
               return res.data;
             })
-          );
+          ).then((results) => {
+            this.clearListSolid();
+            this.setState({ textureListSolid: results });
+          });
         });
 
       axios
@@ -92,12 +120,12 @@ class WallTextureList extends Component {
           Promise.all(
             textureListTemp.map(async (textureId) => {
               let res = await axios.get(BASE_URL + TEXTURES + FIND + textureId);
-              let temp = [...this.state.textureListTile];
-              temp.push(res.data);
-              this.setState({ textureListTile: temp });
               return res.data;
             })
-          );
+          ).then((results) => {
+            this.clearListTile();
+            this.setState({ textureListTile: results });
+          });
         });
     }
   }
@@ -115,12 +143,12 @@ class WallTextureList extends Component {
           Promise.all(
             textureListTemp.map(async (textureId) => {
               let res = await axios.get(BASE_URL + TEXTURES + FIND + textureId);
-              let temp = [...this.state.textureList];
-              temp.push(res.data);
-              this.setState({ textureList: temp });
               return res.data;
             })
-          );
+          ).then((results) => {
+            this.clearListMisc();
+            this.setState({ textureListMisc: results });
+          });
         });
 
       axios
@@ -130,12 +158,12 @@ class WallTextureList extends Component {
           Promise.all(
             textureListTemp.map(async (textureId) => {
               let res = await axios.get(BASE_URL + TEXTURES + FIND + textureId);
-              let temp = [...this.state.textureListSolid];
-              temp.push(res.data);
-              this.setState({ textureListSolid: temp });
               return res.data;
             })
-          );
+          ).then((results) => {
+            this.clearListSolid();
+            this.setState({ textureListSolid: results });
+          });
         });
 
       axios
@@ -145,12 +173,12 @@ class WallTextureList extends Component {
           Promise.all(
             textureListTemp.map(async (textureId) => {
               let res = await axios.get(BASE_URL + TEXTURES + FIND + textureId);
-              let temp = [...this.state.textureListTile];
-              temp.push(res.data);
-              this.setState({ textureListTile: temp });
               return res.data;
             })
-          );
+          ).then((results) => {
+            this.clearListTile();
+            this.setState({ textureListTile: results });
+          });
         });
     }
   }
@@ -175,14 +203,18 @@ class WallTextureList extends Component {
   render() {
     return (
       <div className="texture-panel">
-        <div className="panel-heading">Adjust Wall</div>
-        <hr className="small-underline" />
-        <div className="texture-panel-heading">Patterns</div>
-        <TextureList textureList={this.state.textureList.reverse()} />
-        <div className="texture-panel-heading">Solids</div>
-        <TextureList textureList={this.state.textureListSolid.reverse()} />
-        <div className="texture-panel-heading">Tiles</div>
-        <TextureList textureList={this.state.textureListTile.reverse()} />
+        <input type="checkbox" id="invisible" onChange={this.handleChange} />{" "}
+        <label htmlFor="fixed">Invisible</label>
+        <div id="wall-texture-panel">
+          <div className="panel-heading">Adjust Wall</div>
+          <hr className="small-underline" />
+          <div className="texture-panel-heading">Patterns</div>
+          <TextureList textureList={this.state.textureListMisc.reverse()} />
+          <div className="texture-panel-heading">Solids</div>
+          <TextureList textureList={this.state.textureListSolid.reverse()} />
+          <div className="texture-panel-heading">Tiles</div>
+          <TextureList textureList={this.state.textureListTile.reverse()} />
+        </div>
       </div>
     );
   }
