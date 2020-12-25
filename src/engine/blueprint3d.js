@@ -548,8 +548,11 @@ var __extends = (this && this.__extends) || function (d, b) {
                 this.obstructOnFloorMoves = false;
                 /** Does this object affect other on ceiling items */
                 this.obstructCeilingMoves = false;
+
                 this.light = null;
                 this.lightPosition = new THREE.Vector3();
+
+
                 /** Show rotate option in context menu */
                 this.allowRotate = true;
                 /** */
@@ -559,6 +562,10 @@ var __extends = (this && this.__extends) || function (d, b) {
                 /** */
                 this.getHeight = function () {
                     return this.halfSize.y * 2.0;
+                };
+                /** */
+                this.getAbsoluteWidth = function () {
+                    return Math.abs(this.halfSize.x * 2.0);
                 };
                 /** */
                 this.getWidth = function () {
@@ -622,7 +629,7 @@ var __extends = (this && this.__extends) || function (d, b) {
                 return true;
             };
             /** */
-            Item.prototype.isEverVisible = function () {
+            Item.prototype.isRailingItem = function () {
                 return false;
             };
             /** */
@@ -646,8 +653,11 @@ var __extends = (this && this.__extends) || function (d, b) {
 
             /** */
             Item.prototype.resize = function (height, width, depth) {
-                if (height > 0 && width !== 0 && depth > 0) {
+                if (height > 0 && width > 0 && depth > 0) {
                     var x = width / this.getWidth();
+                    if (this.getWidth() < 0) {
+                        x = -1 * x;
+                    }
                     var y = height / this.getHeight();
                     var z = depth / this.getDepth();
                     this.setScale(x, y, z);
@@ -655,8 +665,8 @@ var __extends = (this && this.__extends) || function (d, b) {
             };
             /** */
             Item.prototype.mirrorize = function (height, width, depth) {
-                if (height > 0 && width !== 0 && depth > 0) {
-                    var x = (-1 * width) / this.getWidth();
+                if (height > 0 && width > 0 && depth > 0) {
+                    var x = -1 * (width / this.getAbsoluteWidth())
                     var y = height / this.getHeight();
                     var z = depth / this.getDepth();
                     this.setScale(x, y, z);
@@ -3692,7 +3702,7 @@ var Polygon = require('polygon')
             };
 
             /** */
-            RailingItem.prototype.isEverVisible = function () {
+            RailingItem.prototype.isRailingItem = function () {
                 return true;
             };
             /** */
@@ -3719,7 +3729,7 @@ var Polygon = require('polygon')
 
                 var objects = this.model.scene.getItems();
                 for (let i = 0; i < objects.length; i++) {
-                    if (objects[i] === this || !objects[i].obstructInWallMoves) {
+                    if (objects[i] === this || !objects[i].obstructInWallMoves || objects[i].isRailingItem()) {
                         continue;
                     }
 
@@ -3732,49 +3742,6 @@ var Polygon = require('polygon')
                 };
                 return true;
             }
-
-            RailingItem.prototype.getCornersXZBIG = function (xDim, yDim, position) {
-                position = position || this.position;
-                var halfSize = this.halfSize.clone();
-                let maxSize = Math.max(halfSize.x, halfSize.z);
-                let wallTol = 1;
-                var c1 = new THREE.Vector3(-(maxSize + wallTol), 0, -(maxSize + wallTol));
-                var c2 = new THREE.Vector3((maxSize + wallTol), 0, -(maxSize + wallTol));
-                var c3 = new THREE.Vector3((maxSize + wallTol), 0, (maxSize + wallTol));
-                var c4 = new THREE.Vector3(-(maxSize + wallTol), 0, (maxSize + wallTol));
-                var transform = new THREE.Matrix4();
-                //console.log(this.rotation.y);
-                transform.makeRotationY(this.rotation.y); //  + Math.PI/2)
-                c1.applyMatrix4(transform);
-                c2.applyMatrix4(transform);
-                c3.applyMatrix4(transform);
-                c4.applyMatrix4(transform);
-                c1.add(position);
-                c2.add(position);
-                c3.add(position);
-                c4.add(position);
-                //halfSize.applyMatrix4(transform);
-                //var min = position.clone().sub(halfSize);
-                //var max = position.clone().add(halfSize);
-                var corners = [{
-                        x: c1.x,
-                        y: c1.z
-                    },
-                    {
-                        x: c2.x,
-                        y: c2.z
-                    },
-                    {
-                        x: c3.x,
-                        y: c3.z
-                    },
-                    {
-                        x: c4.x,
-                        y: c4.z
-                    }
-                ];
-                return corners;
-            };
 
             return RailingItem;
         })(Items.InWallFloorItem);
@@ -5603,7 +5570,7 @@ var Polygon = require('polygon')
 
                         let isBalcony = false;
                         wall.items.forEach(function (item) {
-                            if (item.isEverVisible()) {
+                            if (item.isRailingItem()) {
                                 isBalcony = true;
                             }
                         });

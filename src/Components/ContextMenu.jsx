@@ -65,6 +65,7 @@ class ContextMenu extends Component {
                   type="number"
                   className="form-control"
                   id="item-width"
+                  min="1"
                 ></input>
               </div>
               <div className="form-group">
@@ -74,6 +75,7 @@ class ContextMenu extends Component {
                   type="number"
                   className="form-control"
                   id="item-depth"
+                  min="1"
                 ></input>
               </div>
               <div className="form-group" id="item-height-div">
@@ -83,6 +85,7 @@ class ContextMenu extends Component {
                   type="number"
                   className="form-control"
                   id="item-height"
+                  min="1"
                 ></input>
               </div>
               <div className="form-group" id="item-elevation-div">
@@ -92,6 +95,7 @@ class ContextMenu extends Component {
                   type="number"
                   className="form-control"
                   id="item-elevation"
+                  min="0"
                 ></input>
               </div>
             </div>

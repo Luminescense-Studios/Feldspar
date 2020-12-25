@@ -241,7 +241,7 @@ class BlueprintPage extends Component {
       );
       // console.log(selectedItem.metadata.itemType)
 
-      $("#item-width").val(cmToIn(selectedItem.getWidth()).toFixed(0));
+      $("#item-width").val(cmToIn(selectedItem.getAbsoluteWidth()).toFixed(0));
       $("#item-height").val(cmToIn(selectedItem.getHeight()).toFixed(0));
       $("#item-depth").val(cmToIn(selectedItem.getDepth()).toFixed(0));
       $("#item-elevation").val(cmToIn(selectedItem.getElevation()).toFixed(0));
@@ -280,7 +280,7 @@ class BlueprintPage extends Component {
           inToCm($("#item-width").val()),
           inToCm($("#item-depth").val())
         );
-        $("#item-width").val(cmToIn(selectedItem.getWidth()).toFixed(0));
+        $("#item-width").val(cmToIn(selectedItem.getAbsoluteWidth()).toFixed(0));
         $("#item-height").val(cmToIn(selectedItem.getHeight()).toFixed(0));
         $("#item-depth").val(cmToIn(selectedItem.getDepth()).toFixed(0));
         $("#item-elevation").val(

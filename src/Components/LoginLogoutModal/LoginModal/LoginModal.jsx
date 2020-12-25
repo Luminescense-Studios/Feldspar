@@ -7,6 +7,7 @@ import LoginForm from "./LoginForm.jsx";
 import SignupForm from "./SignupForm.jsx";
 import LoginWithGoogle from "./LoginWithGoogle/LoginWithGoogle.jsx";
 // import LoginWithFacebook from "./LoginWithFacebook/LoginWithFacebook.jsx";
+import LogoCircle from "../LogoCircle.jsx";
 
 @inject("store")
 @observer
@@ -35,6 +36,7 @@ class LoginModal extends Component {
         onHide={() => this.handleClose()}
         id="loginModal"
       >
+        <LogoCircle />
         <Modal.Body>
           <div className="login-form-space">
             <LoginWithGoogle />

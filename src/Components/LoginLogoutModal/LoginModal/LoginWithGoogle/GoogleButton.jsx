@@ -10,11 +10,12 @@ class GoogleButton extends Component {
         onClick={this.props.onClick}
         disabled={this.props.disabled}
         variant={this.props.variant}
-        className="login-with-google-button"
       >
-        {this.props.org === "google" && <FaGoogle />}
-        {this.props.org === "facebook" && <FaFacebook />}{" "}
-        <p className="text-small">{this.props.message}</p>
+        <div className="row login-with-google-button">
+          {this.props.org === "google" && <FaGoogle />}
+          {this.props.org === "facebook" && <FaFacebook />}
+          <div className="text-small">{this.props.message}</div>
+        </div>
       </Button>
     );
   }

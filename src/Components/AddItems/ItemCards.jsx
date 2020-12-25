@@ -52,6 +52,26 @@ class ItemCards extends Component {
             })
           ).then((results) => {
             this.clearList();
+            results.sort((a, b) => {
+              if (a.groupId === undefined && b.groupId === undefined) {
+                return a.name > b.name ? 1 : -1;
+              }
+              if (a.groupId === undefined) {
+                return 1;
+              }
+              if (b.groupId === undefined) {
+                return -1;
+              }
+              if (a.groupId > b.groupId) {
+                return 1;
+              }
+              if (a.groupId === b.groupId) {
+                if (a.name > b.name) {
+                  return 1;
+                }
+              }
+              return -1;
+            });
             if (this._isMounted) {
               this.setState({ itemList: results });
             }
@@ -75,6 +95,26 @@ class ItemCards extends Component {
             })
           ).then((results) => {
             this.clearList();
+            results.sort((a, b) => {
+              if (a.groupId === undefined && b.groupId === undefined) {
+                return a.name > b.name ? 1 : -1;
+              }
+              if (a.groupId === undefined) {
+                return 1;
+              }
+              if (b.groupId === undefined) {
+                return -1;
+              }
+              if (a.groupId > b.groupId) {
+                return 1;
+              }
+              if (a.groupId === b.groupId) {
+                if (a.name > b.name) {
+                  return 1;
+                }
+              }
+              return -1;
+            });
             if (this._isMounted) {
               this.setState({ itemList: results });
             }

@@ -24,11 +24,19 @@
 }
 
 /* If the screen size is 768px wide or less, hide the element */
-@media only screen and (max-width: 400px) {
+@media only screen and (max-width: 580px) {
   div.company-name {
     display: none;
   }
 }
+
+/* If the screen size is 768px wide or less, hide the element */
+@media only screen and (max-width: 450px) {
+  div.name-display {
+    display: none;
+  }
+}
+
 
 html {
   width: 100%;
@@ -612,7 +620,7 @@ ADD ITEMS
 }
 
 .name-display {
-  margin: auto 2rem;
+  margin: auto;
   border-color: var(--primary-gray);
   border-width: 0.15rem;
   border-style: dashed;
@@ -662,7 +670,7 @@ ADD ITEMS
   border-color: var(--white);
   border-width: 0.15rem;
   border-style: solid;
-  padding: 0rem 1rem;
+  padding: 0rem .3rem;
 }
 
 /*--------------------------------------------------------------
@@ -676,6 +684,23 @@ ADD ITEMS
   /* min-width: 10rem; */
 }
 
+.logo-circle-space {
+  margin: -6rem auto 0 auto;
+  width: max-content;
+}
+
+.logo-circle-component {
+  padding: 1.5rem 2rem;
+  border-radius: 6rem;
+  border-style: solid;
+  border-color: var(--very-light-gray);
+  background-image: linear-gradient(120deg, white, #dc3545);
+}
+
+.logo-circle {
+  height: 8rem;
+}
+
 .login-modal-heading {
   margin: 0.1rem;
   padding-top: 0.4rem;
@@ -685,8 +710,8 @@ ADD ITEMS
 .login-form-space {
   display: flex;
   flex-direction: column;
-  margin: 3rem auto;
-  padding: 0.6rem 0.6rem;
+  margin: 0 auto;
+  padding: 0 0.6rem;
   color: var(--primary-gray);
   width: 100%;
   justify-content: space-around;
@@ -733,14 +758,14 @@ ADD ITEMS
 
 .login-with-google-button {
   font-size: 2rem;
-  padding: 0 .75rem;
-  border-radius:2.4rem; 
+  padding: 0 0.75rem;
+  justify-content: space-around;
 }
 
 .text-small {
-  display: inline;
+  padding-top: 0.4rem;
+  padding-left: 0.5rem;
   font-size: 1rem;
-  padding-bottom: 1rem;
 }
 
 .modal-plain-text {

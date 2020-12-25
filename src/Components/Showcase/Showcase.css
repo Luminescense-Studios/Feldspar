@@ -5,7 +5,11 @@ body {
 # Sections General
 --------------------------------------------------------------*/
 section {
-  padding: 3.75rem 0;
+  padding: 2rem 0;
+}
+
+.section-bg {
+  background-color: #f7f8fa;
 }
 
 .section-title {
@@ -193,6 +197,37 @@ section {
 }
 
 /*--------------------------------------------------------------
+# About
+--------------------------------------------------------------*/
+
+.img-fluid {
+  width: 100%;
+}
+
+.about h3 {
+  font-weight: 700;
+  font-size: 34px;
+  color: #414c64;
+}
+
+.about h4 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-top: 5px;
+  color: #414c64;
+}
+
+.about .icon {
+  font-size: 3rem;
+  color: #8b97b3;
+}
+
+.about p {
+  font-size: 15px;
+  color: #848484;
+}
+
+/*--------------------------------------------------------------
 # Portfolio
 --------------------------------------------------------------*/
 
@@ -238,6 +273,83 @@ section {
 .portfolio .portfolio-item:hover .portfolio-info {
   opacity: 1;
   bottom: 0;
+}
+
+/*--------------------------------------------------------------
+# Frequently Asked Questions
+--------------------------------------------------------------*/
+.faq .faq-list {
+  padding: 0 100px;
+  margin-bottom: 0.5rem;
+}
+
+.card-header {
+  border: none;
+  background-color: #fff;
+}
+
+.faq .faq-list .list-item {
+  margin: 1rem;
+  border: none;
+  background: #fff;
+  border-radius: 4px;
+  position: relative;
+}
+
+.faq .faq-list .faq-heading {
+  display: block;
+  position: relative;
+  font-family: "Poppins", sans-serif;
+  font-size: 1rem;
+  line-height: 24px;
+  font-weight: 500;
+  padding: 0 30px;
+  outline: none;
+  cursor: pointer;
+}
+
+.faq .faq-list .faq-heading:hover {
+  color: #ffce3a;
+}
+
+.highlight {
+  color: #ffce3a;
+}
+
+.hidden {
+  display: none;
+}
+
+.show {
+  display: inherit;
+}
+
+.faq .faq-list .icon-help {
+  font-size: 1.5rem;
+  position: absolute;
+  right: 0;
+  left: 20px;
+  color: #ffce3a;
+}
+
+.faq .faq-list .icon-show,
+.faq .faq-list .icon-close {
+  font-size: 1rem;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.faq .faq-list p {
+  margin-bottom: 0;
+  padding: 10px 0 0 0;
+  font-weight: 400;
+}
+
+@media (max-width: 1200px) {
+  .faq .faq-list {
+    padding: 0;
+  }
 }
 
 /*--------------------------------------------------------------
@@ -294,7 +406,7 @@ section {
   margin: auto;
   width: max-content;
   font-size: 4rem;
-  color: var(--success-dark)
+  color: var(--success-dark);
 }
 
 @-webkit-keyframes animate-loading {
@@ -325,8 +437,8 @@ section {
 }
 
 #footer .credits {
-  padding-top: .3rem;
-  font-size: .8rem;
+  padding-top: 0.3rem;
+  font-size: 0.8rem;
 }
 
 #footer .social-links a {
@@ -336,7 +448,7 @@ section {
   color: var(--white);
   line-height: 1;
   padding: 0.5rem 0;
-  margin-right: .3rem;
+  margin-right: 0.3rem;
   border-radius: 50%;
   text-align: center;
   width: 2.25rem;

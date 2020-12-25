@@ -3,6 +3,7 @@ import React, { Component } from "react";
 import { inject, observer } from "mobx-react";
 import Modal from "react-bootstrap/Modal";
 import LogoutBody from "./LogoutBody.jsx";
+import LogoCircle from "../LogoCircle.jsx";
 
 @inject("store")
 @observer
@@ -28,6 +29,7 @@ class LoginModal extends Component {
         id="logoutModal"
       >
         <Modal.Body>
+          <LogoCircle />
           <div className="modal-plain-text">Confirm Log out?</div>
           <LogoutBody />
         </Modal.Body>
