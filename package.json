@@ -65,7 +65,7 @@
     "semver": "6.3.0",
     "style-loader": "0.23.1",
     "terser-webpack-plugin": "2.3.5",
-    "three": "^0.117.1",
+    "three": "^0.125.0",
     "ts-pnp": "1.1.6",
     "typescript": "^3.9.5",
     "url-loader": "2.3.0",
